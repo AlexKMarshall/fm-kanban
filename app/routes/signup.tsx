@@ -10,8 +10,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function Signup() {
   return (
-    <Form method="post">
-      <div>
+    <Form method="post" className="max-w-[40ch]">
+      <div className="flex flex-col gap-2">
         <label htmlFor="email">Email</label>
         <input
           type="email"
@@ -21,7 +21,7 @@ export default function Signup() {
           autoComplete="email"
         />
       </div>
-      <div>
+      <div className="flex flex-col gap-2">
         <label htmlFor="password">Password</label>
         <input
           type="password"
