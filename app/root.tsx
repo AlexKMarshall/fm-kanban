@@ -7,23 +7,23 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
-} from "@remix-run/react";
+} from '@remix-run/react'
 
-import "./tailwind.css";
-import { LoaderFunctionArgs } from "@remix-run/node";
-import { authCookie } from "./auth";
-import { z } from "zod";
+import './tailwind.css'
+import { LoaderFunctionArgs } from '@remix-run/node'
+import { authCookie } from './auth'
+import { z } from 'zod'
 
-const authCookieSchema = z.coerce.string().min(1).nullable();
+const authCookieSchema = z.coerce.string().min(1).nullable()
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const cookieString = request.headers.get("Cookie");
-  const userId = authCookieSchema.parse(await authCookie.parse(cookieString));
-  return { userId };
+  const cookieString = request.headers.get('Cookie')
+  const userId = authCookieSchema.parse(await authCookie.parse(cookieString))
+  return { userId }
 }
 
 export default function App() {
-  const { userId } = useLoaderData<typeof loader>();
+  const { userId } = useLoaderData<typeof loader>()
   return (
     <html lang="en">
       <head>
@@ -44,5 +44,5 @@ export default function App() {
         <LiveReload />
       </body>
     </html>
-  );
+  )
 }

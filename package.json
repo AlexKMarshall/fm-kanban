@@ -7,6 +7,7 @@
     "build": "remix vite:build",
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
+    "format": "prettier --ignore-path .gitignore --write \"**/*.{cjs,mjs,js,jsx,ts,tsx,json,md}\"",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc",
     "knip": "knip"
@@ -18,6 +19,7 @@
     "isbot": "^4.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "tailwind-variants": "^0.1.20",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -35,6 +37,8 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "knip": "^4.2.3",
+    "prettier": "^3.2.4",
+    "prettier-plugin-tailwindcss": "^0.5.11",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.0",
