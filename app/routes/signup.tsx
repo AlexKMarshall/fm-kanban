@@ -4,6 +4,7 @@ import { HTMLAttributes } from 'react'
 import { z } from 'zod'
 import { authCookie, createAccount } from '~/auth'
 import { Input } from '~/ui/input'
+import { Label } from '~/ui/label'
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -45,7 +46,7 @@ export default function Signup() {
   return (
     <Form method="post" className="max-w-[40ch]">
       <div className="flex flex-col gap-2">
-        <label htmlFor="email">Email</label>
+        <Label htmlFor="email">Email</Label>
         <Input
           type="email"
           id="email"
@@ -63,8 +64,8 @@ export default function Signup() {
         />
       </div>
       <div className="flex flex-col gap-2">
-        <label htmlFor="password">Password</label>
-        <input
+        <Label htmlFor="password">Password</Label>
+        <Input
           type="password"
           id="password"
           name="password"
