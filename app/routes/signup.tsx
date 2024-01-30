@@ -1,7 +1,8 @@
-import { ActionFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
 import { HTMLAttributes } from "react";
 import { z } from "zod";
+import { authCookie, createAccount } from "~/auth";
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -14,15 +15,26 @@ const signupSchema = z.object({
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
-  const email = formData.get("email");
-  const password = formData.get("password");
+  const rawEmail = formData.get("email");
+  const rawPassword = formData.get("password");
 
-  const result = signupSchema.safeParse({ email, password });
+  const result = signupSchema.safeParse({
+    email: rawEmail,
+    password: rawPassword,
+  });
 
   if (!result.success) {
     return result.error.flatten();
   }
-  return null;
+
+  const { email, password } = result.data;
+
+  const user = await createAccount({ email, password });
+  return redirect("/", {
+    headers: {
+      "Set-Cookie": await authCookie.serialize(user.id),
+    },
+  });
 }
 
 export default function Signup() {
