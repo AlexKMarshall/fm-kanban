@@ -96,7 +96,7 @@ export default function Signup() {
   )
 }
 
-export async function accountExists(email: string) {
+async function accountExists(email: string) {
   const account = await prisma.account.findUnique({
     where: { email },
   })
@@ -104,7 +104,7 @@ export async function accountExists(email: string) {
   return Boolean(account)
 }
 
-export async function createAccount({
+async function createAccount({
   email,
   password,
 }: {
