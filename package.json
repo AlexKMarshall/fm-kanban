@@ -11,7 +11,7 @@
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc",
     "knip": "knip",
-    "prepare": "husky"
+    "prepare": "husky && husky install"
   },
   "dependencies": {
     "@prisma/client": "5.9.0",
@@ -51,5 +51,12 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "lint-staged": {
+    "**/*.{cjs,mjs,js,jsx,ts,tsx}": [
+      "turbo lint -- --fix",
+      "turbo format -- --write",
+      "turbo typecheck knip build"
+    ]
   }
 }
