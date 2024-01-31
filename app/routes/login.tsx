@@ -9,11 +9,24 @@ import { Label } from '~/ui/label'
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z
-    .string()
-    .min(10, 'Must be at least 10 characters')
-    .regex(/[a-z]/i, 'Must contain at least one letter')
-    .regex(/[0-9]/, 'Must contain at least one number'),
+  password: z.string(),
+})
+
+const loginServerSchema = loginSchema.transform(async (data, ctx) => {
+  const userId = await loginUser({
+    email: data.email,
+    password: data.password,
+  })
+  if (!userId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Invalid email or password',
+      path: ['email'],
+    })
+    return z.NEVER
+  }
+
+  return { ...data, userId }
 })
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -21,7 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const rawEmail = formData.get('email')
   const rawPassword = formData.get('password')
 
-  const result = await loginSchema.safeParseAsync({
+  const result = await loginServerSchema.safeParseAsync({
     email: rawEmail,
     password: rawPassword,
   })
@@ -30,11 +43,8 @@ export async function action({ request }: ActionFunctionArgs) {
     return result.error.flatten()
   }
 
-  const { email, password } = result.data
-
-  const userId = await loginUser({ email, password })
   const redirectHome = redirect('/')
-  await setAuthOnResponse(redirectHome, userId)
+  await setAuthOnResponse(redirectHome, result.data.userId)
   return redirectHome
 }
 
