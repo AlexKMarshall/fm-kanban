@@ -10,7 +10,8 @@
     "format": "prettier --ignore-path .gitignore \"**/*.{cjs,mjs,js,jsx,ts,tsx,json,md}\" --check",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc",
-    "knip": "knip"
+    "knip": "knip",
+    "prepare": "husky"
   },
   "dependencies": {
     "@prisma/client": "5.9.0",
@@ -38,6 +39,7 @@
     "eslint-plugin-jsx-a11y": "^6.7.1",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "husky": "^9.0.7",
     "knip": "^4.2.3",
     "prettier": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.5.11",
