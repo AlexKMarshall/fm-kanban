@@ -1,4 +1,4 @@
-import { ActionFunctionArgs, redirect } from '@remix-run/node'
+import { ActionFunctionArgs, json, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { z } from 'zod'
 import { hashPassword, setAuthOnResponse } from '~/auth'
@@ -40,7 +40,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (!result.success) {
-    return result.error.flatten()
+    return json(result.error.flatten(), { status: 400 })
   }
 
   const redirectHome = redirect('/')

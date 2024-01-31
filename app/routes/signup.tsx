@@ -1,4 +1,4 @@
-import { ActionFunctionArgs, redirect } from '@remix-run/node'
+import { ActionFunctionArgs, redirect, json } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { z } from 'zod'
 import { getNewSalt, hashPassword, setAuthOnResponse } from '~/auth'
@@ -35,7 +35,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (!result.success) {
-    return result.error.flatten()
+    return json(result.error.flatten(), { status: 400 })
   }
 
   const { email, password } = result.data
@@ -92,6 +92,19 @@ export default function Signup() {
         </div>
         <button type="submit">Sign up</button>
       </Form>
+      <h2>Privacy notice</h2>
+      <p>
+        <p>
+          We won&apos;t use your email address for anything other than
+          authenticating with this demo application. This app doesn&apos;t send
+          email anyway, so you can put whatever fake email address you want.
+        </p>
+        <h2>Terms of service</h2>
+        <p>
+          This is a demo app, there are no terms of service. Don&apos;t be
+          surprised if your data disappears.
+        </p>
+      </p>
     </div>
   )
 }
