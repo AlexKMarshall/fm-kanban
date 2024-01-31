@@ -40,7 +40,9 @@ export default function App() {
             )}
           </nav>
         </header>
-        <Outlet />
+        <main>
+          <Outlet />
+        </main>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

@@ -1,4 +1,5 @@
 import { redirect, createCookie } from '@remix-run/node'
+import crypto from 'node:crypto'
 import { z } from 'zod'
 
 const secret = z.string().min(12).parse(process.env.COOKIE_SECRET)
@@ -21,7 +22,15 @@ export async function setAuthOnResponse(response: Response, userId: string) {
 
 export async function getAuthFromRequest(request: Request) {
   const cookieString = request.headers.get('Cookie')
-  return authCookieSchema.parse(await authCookie.parse(cookieString))
+
+  const authCookieResult = authCookieSchema.safeParse(
+    await authCookie.parse(cookieString),
+  )
+  if (authCookieResult.success) return authCookieResult.data
+
+  // We have a malformed cookie, so we'll clear it and redirect home
+  console.error('Malformed auth cookie', authCookieResult.error)
+  return redirectWithClearedCookie()
 }
 
 export async function redirectWithClearedCookie() {
@@ -32,4 +41,18 @@ export async function redirectWithClearedCookie() {
       }),
     },
   })
+}
+
+export function hashPassword({
+  password,
+  salt,
+}: {
+  password: string
+  salt: string
+}) {
+  return crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex')
+}
+
+export function getNewSalt() {
+  return crypto.randomBytes(32).toString('hex')
 }
