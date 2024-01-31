@@ -11,14 +11,10 @@ import {
 
 import './tailwind.css'
 import { LoaderFunctionArgs } from '@remix-run/node'
-import { authCookie } from './auth'
-import { z } from 'zod'
-
-const authCookieSchema = z.coerce.string().min(1).nullable()
+import { getAuthFromRequest } from './auth'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const cookieString = request.headers.get('Cookie')
-  const userId = authCookieSchema.parse(await authCookie.parse(cookieString))
+  const userId = await getAuthFromRequest(request)
   return { userId }
 }
 

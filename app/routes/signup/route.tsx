@@ -2,7 +2,7 @@ import { ActionFunctionArgs, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { HTMLAttributes } from 'react'
 import { z } from 'zod'
-import { authCookie } from '~/auth'
+import { setAuthOnResponse } from '~/auth'
 import { Input } from '~/ui/input'
 import { Label } from '~/ui/label'
 import { accountExists, createAccount } from './account.server'
@@ -41,11 +41,9 @@ export async function action({ request }: ActionFunctionArgs) {
   const { email, password } = result.data
 
   const user = await createAccount({ email, password })
-  return redirect('/', {
-    headers: {
-      'Set-Cookie': await authCookie.serialize(user.id),
-    },
-  })
+  const redirectHome = redirect('/')
+  await setAuthOnResponse(redirectHome, user.id)
+  return redirectHome
 }
 
 export default function Signup() {
