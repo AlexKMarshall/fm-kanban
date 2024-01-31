@@ -1,4 +1,4 @@
-import { createCookie } from '@remix-run/node'
+import { redirect, createCookie } from '@remix-run/node'
 import { z } from 'zod'
 
 const secret = z.string().min(12).parse(process.env.COOKIE_SECRET)
@@ -22,4 +22,14 @@ export async function setAuthOnResponse(response: Response, userId: string) {
 export async function getAuthFromRequest(request: Request) {
   const cookieString = request.headers.get('Cookie')
   return authCookieSchema.parse(await authCookie.parse(cookieString))
+}
+
+export async function redirectWithClearedCookie() {
+  return redirect('/', {
+    headers: {
+      'Set-Cookie': await authCookie.serialize(null, {
+        expires: new Date(0),
+      }),
+    },
+  })
 }

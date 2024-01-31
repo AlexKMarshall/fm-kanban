@@ -31,7 +31,13 @@ export default function App() {
       <body>
         <header>
           <nav>
-            {userId ? <button>Logout</button> : <Link to="/login">Login</Link>}
+            {userId ? (
+              <form action="/logout" method="post">
+                <button>Logout</button>
+              </form>
+            ) : (
+              <Link to="/login">Login</Link>
+            )}
           </nav>
         </header>
         <Outlet />
