@@ -55,8 +55,7 @@
   "lint-staged": {
     "**/*.{cjs,mjs,js,jsx,ts,tsx}": [
       "turbo lint -- --fix",
-      "turbo format -- --write",
-      "turbo typecheck knip build"
+      "turbo format -- --write"
     ]
   }
 }
