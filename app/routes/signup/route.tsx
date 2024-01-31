@@ -2,9 +2,10 @@ import { ActionFunctionArgs, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { HTMLAttributes } from 'react'
 import { z } from 'zod'
-import { authCookie, createAccount } from '~/auth'
+import { authCookie } from '~/auth'
 import { Input } from '~/ui/input'
 import { Label } from '~/ui/label'
+import { accountExists, createAccount } from './account.server'
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -15,12 +16,20 @@ const signupSchema = z.object({
     .regex(/[0-9]/, 'Must contain at least one number'),
 })
 
+const signupServerSchema = signupSchema.refine(
+  async ({ email }) => !(await accountExists(email)),
+  {
+    message: 'An account with this email already exists',
+    path: ['email'],
+  },
+)
+
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
   const rawEmail = formData.get('email')
   const rawPassword = formData.get('password')
 
-  const result = signupSchema.safeParse({
+  const result = await signupServerSchema.safeParseAsync({
     email: rawEmail,
     password: rawPassword,
   })
