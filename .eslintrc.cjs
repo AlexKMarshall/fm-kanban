@@ -54,6 +54,10 @@ module.exports = {
       files: ['**/*.{ts,tsx}'],
       plugins: ['@typescript-eslint', 'import'],
       parser: '@typescript-eslint/parser',
+      parserOptions: {
+        project: true,
+        tsconfigRootDir: __dirname,
+      },
       settings: {
         'import/internal-regex': '^~/',
         'import/resolver': {
@@ -66,7 +70,7 @@ module.exports = {
         },
       },
       extends: [
-        'plugin:@typescript-eslint/recommended',
+        'plugin:@typescript-eslint/recommended-type-checked',
         'plugin:import/recommended',
         'plugin:import/typescript',
       ],
@@ -74,7 +78,7 @@ module.exports = {
 
     // Node
     {
-      files: ['.eslintrc.js'],
+      files: ['.eslintrc.cjs'],
       env: {
         node: true,
       },
