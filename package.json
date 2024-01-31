@@ -7,7 +7,7 @@
     "build": "remix vite:build",
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
-    "format": "prettier --ignore-path .gitignore --write \"**/*.{cjs,mjs,js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --ignore-path .gitignore \"**/*.{cjs,mjs,js,jsx,ts,tsx,json,md}\" --check",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc",
     "knip": "knip"

@@ -4,6 +4,9 @@
     "build": {
       "outputs": ["build/**"]
     },
-    "typecheck": {}
+    "typecheck": {},
+    "knip": {},
+    "lint": {},
+    "format": {}
   }
 }
