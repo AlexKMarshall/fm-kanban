@@ -1,2 +1,2 @@
-pnpm dlx lint-staged
+pnpm lint-staged
 turbo build knip typecheck

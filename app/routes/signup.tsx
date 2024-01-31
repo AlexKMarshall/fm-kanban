@@ -1,11 +1,18 @@
 import { ActionFunctionArgs, redirect, json } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { z } from 'zod'
-import { getNewSalt, hashPassword, setAuthOnResponse } from '~/auth'
+import {
+  getNewSalt,
+  hashPassword,
+  redirectIfLoggedInLoader,
+  setAuthOnResponse,
+} from '~/auth'
 import { Input } from '~/ui/input'
 import { Label } from '~/ui/label'
 import { FieldError } from '~/ui/field-error'
 import { prisma } from '~/db/prisma.server'
+
+export const loader = redirectIfLoggedInLoader
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -41,7 +48,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const { email, password } = result.data
 
   const user = await createAccount({ email, password })
-  const redirectHome = redirect('/')
+  const redirectHome = redirect('/home')
   await setAuthOnResponse(redirectHome, user.id)
   return redirectHome
 }

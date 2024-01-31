@@ -1,5 +1,6 @@
 import type { MetaFunction } from '@remix-run/node'
 import { Link } from '@remix-run/react'
+import { redirectIfLoggedInLoader } from '~/auth'
 
 export const meta: MetaFunction = () => {
   return [
@@ -8,38 +9,20 @@ export const meta: MetaFunction = () => {
   ]
 }
 
+export const loader = redirectIfLoggedInLoader
+
 export default function Index() {
   return (
-    <div style={{ fontFamily: 'system-ui, sans-serif', lineHeight: '1.8' }}>
-      <h1>Welcome to Remix</h1>
-      <ul>
-        <li>
-          <Link to="/signup">Signup</Link>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/blog"
-            rel="noreferrer"
-          >
-            15m Quickstart Blog Tutorial reload again
-          </a>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/jokes"
-            rel="noreferrer"
-          >
-            Deep Dive Jokes App Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
-      </ul>
+    <div>
+      <h1>Kanban app</h1>
+      <p>
+        This is a Frontend Mentor project similar to trello. To play around with
+        it sign up or login.
+      </p>
+      <div className="flex gap-8">
+        <Link to="/signup">Signup</Link>
+        <Link to="/login">Login</Link>
+      </div>
     </div>
   )
 }

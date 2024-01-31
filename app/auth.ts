@@ -1,4 +1,4 @@
-import { redirect, createCookie } from '@remix-run/node'
+import { redirect, createCookie, LoaderFunctionArgs } from '@remix-run/node'
 import crypto from 'node:crypto'
 import { z } from 'zod'
 
@@ -26,15 +26,25 @@ export async function getAuthFromRequest(request: Request) {
   const authCookieResult = authCookieSchema.safeParse(
     await authCookie.parse(cookieString),
   )
-  if (authCookieResult.success) return authCookieResult.data
+  if (!authCookieResult.success) {
+    // We have a malformed cookie, so we'll clear it and redirect home
+    console.error('Malformed auth cookie', authCookieResult.error)
+    throw redirectWithClearedCookie()
+  }
 
-  // We have a malformed cookie, so we'll clear it and redirect home
-  console.error('Malformed auth cookie', authCookieResult.error)
-  return redirectWithClearedCookie()
+  return authCookieResult.data
 }
 
-export async function redirectWithClearedCookie() {
-  return redirect('/', {
+export async function requireAuthCookie(request: Request) {
+  const authCookie = await getAuthFromRequest(request)
+
+  if (!authCookie) throw redirectWithClearedCookie('/login')
+
+  return authCookie
+}
+
+export async function redirectWithClearedCookie(redirectTo = '/') {
+  return redirect(redirectTo, {
     headers: {
       'Set-Cookie': await authCookie.serialize(null, {
         expires: new Date(0),
@@ -55,4 +65,12 @@ export function hashPassword({
 
 export function getNewSalt() {
   return crypto.randomBytes(32).toString('hex')
+}
+
+export async function redirectIfLoggedInLoader({
+  request,
+}: LoaderFunctionArgs) {
+  const userId = await getAuthFromRequest(request)
+  if (userId) throw redirect('/home')
+  return null
 }
