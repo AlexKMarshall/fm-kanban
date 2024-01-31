@@ -15,6 +15,7 @@ model Account {
   email String @unique
 
   Password Password?
+  Board    Board[]
 }
 
 model Password {
@@ -23,4 +24,13 @@ model Password {
   salt      String
   account   Account @relation(fields: [accountId], references: [id])
   accountId String  @unique
+}
+
+model Board {
+  id      String  @id @default(cuid())
+  name    String
+  owner   Account @relation(fields: [ownerId], references: [id])
+  ownerId String
+
+  @@unique([name, ownerId])
 }
