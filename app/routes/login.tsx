@@ -1,11 +1,11 @@
 import { ActionFunctionArgs, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { z } from 'zod'
-import { setAuthOnResponse } from '~/auth'
+import { hashPassword, setAuthOnResponse } from '~/auth'
+import { prisma } from '~/db/prisma.server'
 import { FieldError } from '~/ui/field-error'
 import { Input } from '~/ui/input'
 import { Label } from '~/ui/label'
-import { login } from './queries.server'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -32,7 +32,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const { email, password } = result.data
 
-  const userId = await login({ email, password })
+  const userId = await loginUser({ email, password })
   const redirectHome = redirect('/')
   await setAuthOnResponse(redirectHome, userId)
   return redirectHome
@@ -86,4 +86,24 @@ export default function Login() {
       </Form>
     </div>
   )
+}
+
+async function loginUser({
+  email,
+  password,
+}: {
+  email: string
+  password: string
+}) {
+  const account = await prisma.account.findUnique({
+    where: { email },
+    include: { Password: true },
+  })
+  if (!account || !account.Password) return false
+
+  const hash = hashPassword({ password, salt: account.Password.salt })
+
+  if (hash !== account.Password.hash) return false
+
+  return account.id
 }

@@ -1,11 +1,11 @@
 import { ActionFunctionArgs, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { z } from 'zod'
-import { setAuthOnResponse } from '~/auth'
+import { getNewSalt, hashPassword, setAuthOnResponse } from '~/auth'
 import { Input } from '~/ui/input'
 import { Label } from '~/ui/label'
-import { accountExists, createAccount } from './queries.server'
 import { FieldError } from '~/ui/field-error'
+import { prisma } from '~/db/prisma.server'
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -94,4 +94,35 @@ export default function Signup() {
       </Form>
     </div>
   )
+}
+
+export async function accountExists(email: string) {
+  const account = await prisma.account.findUnique({
+    where: { email },
+  })
+
+  return Boolean(account)
+}
+
+export async function createAccount({
+  email,
+  password,
+}: {
+  email: string
+  password: string
+}) {
+  const salt = getNewSalt()
+  const hash = hashPassword({ password, salt })
+
+  return prisma.account.create({
+    data: {
+      email,
+      Password: {
+        create: {
+          hash,
+          salt,
+        },
+      },
+    },
+  })
 }
