@@ -11,16 +11,24 @@ import { Input } from '~/ui/input'
 import { Label } from '~/ui/label'
 import { FieldError } from '~/ui/field-error'
 import { prisma } from '~/db/prisma.server'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { useForm } from '@conform-to/react'
 
 export const loader = redirectIfLoggedInLoader
 
 const signupSchema = z.object({
-  email: z.string().email(),
-  password: z
-    .string()
-    .min(10, 'Must be at least 10 characters')
-    .regex(/[a-z]/i, 'Must contain at least one letter')
-    .regex(/[0-9]/, 'Must contain at least one number'),
+  email: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string({ required_error: 'Email is required' }).email('Email is invalid'),
+  ),
+  password: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z
+      .string({ required_error: 'Password is required' })
+      .min(10, 'Must be at least 10 characters')
+      .regex(/[a-z]/i, 'Must contain at least one letter')
+      .regex(/[0-9]/, 'Must contain at least one number'),
+  ),
 })
 
 const signupServerSchema = signupSchema.refine(
@@ -33,19 +41,17 @@ const signupServerSchema = signupSchema.refine(
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
-  const rawEmail = formData.get('email')
-  const rawPassword = formData.get('password')
 
-  const result = await signupServerSchema.safeParseAsync({
-    email: rawEmail,
-    password: rawPassword,
+  const submission = await parseWithZod(formData, {
+    schema: signupServerSchema,
+    async: true,
   })
 
-  if (!result.success) {
-    return json(result.error.flatten(), { status: 400 })
+  if (submission.status !== 'success') {
+    return json(submission.reply(), { status: 400 })
   }
 
-  const { email, password } = result.data
+  const { email, password } = submission.value
 
   const user = await createAccount({ email, password })
   const redirectHome = redirect('/home')
@@ -54,49 +60,66 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Signup() {
-  const actionData = useActionData<typeof action>()
-  const emailErrors = actionData?.fieldErrors.email
-  const passwordErrors = actionData?.fieldErrors.password
+  const lastResult = useActionData<typeof action>()
+  const [form, fields] = useForm<z.infer<typeof signupSchema>>({
+    shouldValidate: 'onSubmit',
+    lastResult,
+    constraint: getZodConstraint(signupSchema),
+  })
   return (
     <div>
       <h1>Sign up</h1>
-      <Form method="post" className="max-w-[40ch]">
+      <Form
+        method="post"
+        className="max-w-[40ch]"
+        id={form.id}
+        aria-invalid={form.errors?.length ? true : undefined}
+        onSubmit={form.onSubmit}
+      >
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor={fields.email.id}>Email</Label>
           <Input
             type="email"
-            id="email"
-            name="email"
-            required
+            id={fields.email.id}
+            name={fields.email.name}
+            defaultValue={fields.email.initialValue}
+            required={fields.email.required}
             autoComplete="email"
-            aria-invalid={emailErrors?.length ? true : undefined}
-            aria-describedby="email-error"
+            aria-invalid={fields.email.errors?.length ? true : undefined}
+            aria-describedby={
+              fields.email.errors?.length ? fields.email.errorId : undefined
+            }
           />
           <FieldError
-            id="email-error"
+            id={fields.email.errorId}
             className="min-h-[1rlh] text-red-700"
             aria-live="polite"
-            errors={emailErrors}
+            errors={fields.email.errors}
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor={fields.password.id}>Password</Label>
           <Input
             type="password"
-            id="password"
-            name="password"
+            id={fields.password.id}
+            name={fields.password.name}
             required
             autoComplete="new-password"
-            aria-invalid={passwordErrors?.length ? true : undefined}
-            aria-describedby="password-error"
+            aria-invalid={fields.password.errors?.length ? true : undefined}
+            aria-describedby={
+              fields.password.errors?.length
+                ? fields.password.errorId
+                : undefined
+            }
           />
           <FieldError
             id="password-error"
             className="min-h-[1rlh] text-red-700"
             aria-live="polite"
-            errors={passwordErrors}
+            errors={fields.password.errors}
           />
         </div>
+        <FieldError id={form.errorId} aria-live="polite" errors={form.errors} />
         <button type="submit">Sign up</button>
       </Form>
       <p>
@@ -104,16 +127,14 @@ export default function Signup() {
       </p>
       <h2>Privacy notice</h2>
       <p>
-        <p>
-          We won&apos;t use your email address for anything other than
-          authenticating with this demo application. This app doesn&apos;t send
-          email anyway, so you can put whatever fake email address you want.
-        </p>
-        <h2>Terms of service</h2>
-        <p>
-          This is a demo app, there are no terms of service. Don&apos;t be
-          surprised if your data disappears.
-        </p>
+        We won&apos;t use your email address for anything other than
+        authenticating with this demo application. This app doesn&apos;t send
+        email anyway, so you can put whatever fake email address you want.
+      </p>
+      <h2>Terms of service</h2>
+      <p>
+        This is a demo app, there are no terms of service. Don&apos;t be
+        surprised if your data disappears.
       </p>
     </div>
   )
