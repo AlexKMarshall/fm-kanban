@@ -1,2 +1,2 @@
 turbo lint-staged
-turbo build knip typecheck
+turbo build knip typecheck lint format

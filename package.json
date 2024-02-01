@@ -56,7 +56,7 @@
     "node": ">=18.0.0"
   },
   "lint-staged": {
-    "**/*.{cjs,mjs,js,jsx,ts,tsx}": [
+    "**/!(*$*).{cjs,mjs,js,jsx,ts,tsx}": [
       "turbo lint -- --fix",
       "turbo format -- --write"
     ]

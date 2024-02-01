@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, json, redirect } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
+import { Form, Link, useActionData } from '@remix-run/react'
 import { z } from 'zod'
 import {
   hashPassword,
@@ -99,6 +99,9 @@ export default function Login() {
           />
         </div>
         <button type="submit">Login</button>
+        <p>
+          Don&apos;t have an account? <Link to="/signup">Sign up</Link>
+        </p>
       </Form>
     </div>
   )

@@ -15,6 +15,7 @@ import { getAuthFromRequest } from './auth'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await getAuthFromRequest(request)
+
   return { userId }
 }
 
