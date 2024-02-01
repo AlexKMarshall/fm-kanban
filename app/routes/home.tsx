@@ -4,7 +4,13 @@ import {
   json,
   redirect,
 } from '@remix-run/node'
-import { Form, useActionData, useLoaderData, Link } from '@remix-run/react'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  Link,
+  useNavigation,
+} from '@remix-run/react'
 import { z } from 'zod'
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
@@ -48,12 +54,16 @@ export default function Home() {
   const actionData = useActionData<typeof action>()
   const nameErrors = actionData?.fieldErrors.name
   const { boards } = useLoaderData<typeof loader>()
+  const navigation = useNavigation()
+  const isCreatingBoard = navigation.formData?.get('intent') === 'createBoard'
+
   return (
     <div>
       <h1>Home</h1>
       <h2>Add New Board</h2>
       <Form method="post" className="max-w-80">
         <div className="flex flex-col gap-2">
+          <input type="hidden" name="intent" value="createBoard" />
           <Label htmlFor="name">Name</Label>
           <Input
             id="name"
@@ -70,7 +80,9 @@ export default function Home() {
             errors={nameErrors}
           />
         </div>
-        <button type="submit">Create New Board</button>
+        <button type="submit">
+          {isCreatingBoard ? 'Creating New Board...' : 'Create New Board'}
+        </button>
       </Form>
       <ul>
         {boards.map((board) => (
