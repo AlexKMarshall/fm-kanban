@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, redirect, json } from '@remix-run/node'
-import { Form, Link, useActionData } from '@remix-run/react'
+import { Form, Link, useActionData, useNavigation } from '@remix-run/react'
 import { z } from 'zod'
 import {
   getNewSalt,
@@ -59,6 +59,13 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirectHome
 }
 
+const INTENTS = {
+  signUp: {
+    value: 'signUp',
+    fieldName: 'intent',
+  },
+} as const
+
 export default function Signup() {
   const lastResult = useActionData<typeof action>()
   const [form, fields] = useForm<z.infer<typeof signupSchema>>({
@@ -66,6 +73,10 @@ export default function Signup() {
     lastResult,
     constraint: getZodConstraint(signupSchema),
   })
+  const navigation = useNavigation()
+  const isSigningUp =
+    navigation.formData?.get(INTENTS.signUp.fieldName) === INTENTS.signUp.value
+
   return (
     <div>
       <h1>Sign up</h1>
@@ -120,7 +131,20 @@ export default function Signup() {
           />
         </div>
         <FieldError id={form.errorId} aria-live="polite" errors={form.errors} />
-        <button type="submit">Sign up</button>
+        <button
+          type="submit"
+          name={INTENTS.signUp.fieldName}
+          value={INTENTS.signUp.value}
+          className="flex gap-4"
+        >
+          Sign up
+          <span
+            className={isSigningUp ? 'animate-pulse' : 'hidden'}
+            aria-hidden
+          >
+            🐡
+          </span>
+        </button>
       </Form>
       <p>
         Already have an account? <Link to="/login">Log in</Link>
