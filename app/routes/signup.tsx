@@ -69,9 +69,13 @@ const INTENTS = {
 export default function Signup() {
   const lastResult = useActionData<typeof action>()
   const [form, fields] = useForm<z.infer<typeof signupSchema>>({
-    shouldValidate: 'onSubmit',
+    shouldValidate: 'onBlur',
+    shouldRevalidate: 'onInput',
     lastResult,
     constraint: getZodConstraint(signupSchema),
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: signupSchema })
+    },
   })
   const navigation = useNavigation()
   const isSigningUp =
