@@ -1,6 +1,7 @@
 import { LoaderFunctionArgs, json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
+
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 

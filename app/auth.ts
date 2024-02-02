@@ -1,5 +1,6 @@
-import { redirect, createCookie, LoaderFunctionArgs } from '@remix-run/node'
 import crypto from 'node:crypto'
+
+import { LoaderFunctionArgs, createCookie, redirect } from '@remix-run/node'
 import { z } from 'zod'
 
 const secret = z.string().min(12).parse(process.env.COOKIE_SECRET)

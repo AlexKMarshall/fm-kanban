@@ -1,18 +1,19 @@
-import { ActionFunctionArgs, redirect, json } from '@remix-run/node'
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { ActionFunctionArgs, json, redirect } from '@remix-run/node'
 import { Form, Link, useActionData, useNavigation } from '@remix-run/react'
 import { z } from 'zod'
+
 import {
   getNewSalt,
   hashPassword,
   redirectIfLoggedInLoader,
   setAuthOnResponse,
 } from '~/auth'
+import { prisma } from '~/db/prisma.server'
+import { FieldError } from '~/ui/field-error'
 import { Input } from '~/ui/input'
 import { Label } from '~/ui/label'
-import { FieldError } from '~/ui/field-error'
-import { prisma } from '~/db/prisma.server'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 
 export const loader = redirectIfLoggedInLoader
 

@@ -1,5 +1,6 @@
 import type { MetaFunction } from '@remix-run/node'
 import { Link } from '@remix-run/react'
+
 import { redirectIfLoggedInLoader } from '~/auth'
 
 export const meta: MetaFunction = () => {

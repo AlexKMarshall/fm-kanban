@@ -1,3 +1,4 @@
+import { LoaderFunctionArgs } from '@remix-run/node'
 import {
   Link,
   Links,
@@ -10,7 +11,7 @@ import {
 } from '@remix-run/react'
 
 import './tailwind.css'
-import { LoaderFunctionArgs } from '@remix-run/node'
+
 import { getAuthFromRequest } from './auth'
 
 export async function loader({ request }: LoaderFunctionArgs) {
