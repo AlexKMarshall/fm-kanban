@@ -12,7 +12,7 @@ import { Label } from '~/ui/label'
 import { FieldError } from '~/ui/field-error'
 import { prisma } from '~/db/prisma.server'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useForm } from '@conform-to/react'
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 
 export const loader = redirectIfLoggedInLoader
 
@@ -48,7 +48,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (submission.status !== 'success') {
-    return json(submission.reply(), { status: 400 })
+    return json(submission.reply({ hideFields: ['password'] }), { status: 400 })
   }
 
   const { email, password } = submission.value
@@ -84,26 +84,12 @@ export default function Signup() {
   return (
     <div>
       <h1>Sign up</h1>
-      <Form
-        method="post"
-        className="max-w-[40ch]"
-        id={form.id}
-        aria-invalid={form.errors?.length ? true : undefined}
-        onSubmit={form.onSubmit}
-      >
+      <Form method="post" className="max-w-[40ch]" {...getFormProps(form)}>
         <div className="flex flex-col gap-2">
           <Label htmlFor={fields.email.id}>Email</Label>
           <Input
-            type="email"
-            id={fields.email.id}
-            name={fields.email.name}
-            defaultValue={fields.email.initialValue}
-            required={fields.email.required}
+            {...getInputProps(fields.email, { type: 'email' })}
             autoComplete="email"
-            aria-invalid={fields.email.errors?.length ? true : undefined}
-            aria-describedby={
-              fields.email.errors?.length ? fields.email.errorId : undefined
-            }
           />
           <FieldError
             id={fields.email.errorId}
@@ -115,17 +101,8 @@ export default function Signup() {
         <div className="flex flex-col gap-2">
           <Label htmlFor={fields.password.id}>Password</Label>
           <Input
-            type="password"
-            id={fields.password.id}
-            name={fields.password.name}
-            required
+            {...getInputProps(fields.password, { type: 'password' })}
             autoComplete="new-password"
-            aria-invalid={fields.password.errors?.length ? true : undefined}
-            aria-describedby={
-              fields.password.errors?.length
-                ? fields.password.errorId
-                : undefined
-            }
           />
           <FieldError
             id="password-error"
