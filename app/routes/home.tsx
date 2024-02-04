@@ -1,3 +1,5 @@
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -34,54 +36,66 @@ export async function action({ request }: ActionFunctionArgs) {
   const userId = await requireAuthCookie(request)
 
   const formData = await request.formData()
-  const rawName = formData.get('name')
-
-  const result = await createBoardSchema.safeParseAsync({
-    name: rawName,
+  const submission = await parseWithZod(formData, {
+    schema: createBoardSchema,
+    async: true,
   })
 
-  if (!result.success) {
-    return json(result.error.flatten(), { status: 400 })
+  if (submission.status !== 'success') {
+    return json(submission.reply(), { status: 400 })
   }
 
-  const { name } = result.data
+  const { name } = submission.value
 
   const board = await createBoard({ name, userId })
 
   return redirect(`/board/${board.id}`)
 }
 
+const INTENTS = {
+  createBoard: {
+    value: 'createBoard',
+    fieldName: 'intent',
+  },
+} as const
+
 export default function Home() {
-  const actionData = useActionData<typeof action>()
-  const nameErrors = actionData?.fieldErrors.name
+  const lastResult = useActionData<typeof action>()
+  const [form, fields] = useForm<z.infer<typeof createBoardSchema>>({
+    shouldValidate: 'onBlur',
+    shouldRevalidate: 'onInput',
+    lastResult,
+    constraint: getZodConstraint(createBoardSchema),
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: createBoardSchema })
+    },
+  })
   const { boards } = useLoaderData<typeof loader>()
   const navigation = useNavigation()
-  const isCreatingBoard = navigation.formData?.get('intent') === 'createBoard'
+  const isCreatingBoard =
+    navigation.formData?.get(INTENTS.createBoard.fieldName) ===
+    INTENTS.createBoard.value
 
   return (
     <div>
       <h1>Home</h1>
       <h2>Add New Board</h2>
-      <Form method="post" className="max-w-80">
+      <Form method="post" className="max-w-80" {...getFormProps(form)}>
         <div className="flex flex-col gap-2">
-          <input type="hidden" name="intent" value="createBoard" />
-          <Label htmlFor="name">Name</Label>
-          <Input
-            id="name"
-            name="name"
-            type="text"
-            required
-            aria-invalid={nameErrors?.length ? true : undefined}
-            aria-describedby="name-error"
-          />
+          <Label htmlFor={fields.name.id}>Name</Label>
+          <Input {...getInputProps(fields.name, { type: 'text' })} />
           <FieldError
-            id="name-error"
+            id={fields.name.errorId}
             className="min-h-[1rlh] text-red-700"
             aria-live="polite"
-            errors={nameErrors}
+            errors={fields.name.errors}
           />
         </div>
-        <button type="submit">
+        <button
+          type="submit"
+          name={INTENTS.createBoard.fieldName}
+          value={INTENTS.createBoard.value}
+        >
           {isCreatingBoard ? 'Creating New Board...' : 'Create New Board'}
         </button>
       </Form>
