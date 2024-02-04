@@ -13,6 +13,7 @@ import {
   useLoaderData,
   useNavigation,
 } from '@remix-run/react'
+import { useRef } from 'react'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
@@ -60,6 +61,7 @@ const INTENTS = {
 } as const
 
 export default function Home() {
+  const createBoardModalRef = useRef<HTMLDialogElement>(null)
   const lastResult = useActionData<typeof action>()
   const [form, fields] = useForm<z.infer<typeof createBoardSchema>>({
     shouldValidate: 'onBlur',
@@ -79,26 +81,6 @@ export default function Home() {
   return (
     <div>
       <h1>Home</h1>
-      <h2>Add New Board</h2>
-      <Form method="post" className="max-w-80" {...getFormProps(form)}>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={fields.name.id}>Name</Label>
-          <Input {...getInputProps(fields.name, { type: 'text' })} />
-          <FieldError
-            id={fields.name.errorId}
-            className="min-h-[1rlh] text-red-700"
-            aria-live="polite"
-            errors={fields.name.errors}
-          />
-        </div>
-        <button
-          type="submit"
-          name={INTENTS.createBoard.fieldName}
-          value={INTENTS.createBoard.value}
-        >
-          {isCreatingBoard ? 'Creating New Board...' : 'Create New Board'}
-        </button>
-      </Form>
       <ul>
         {boards.map((board) => (
           <li key={board.id}>
@@ -106,6 +88,39 @@ export default function Home() {
           </li>
         ))}
       </ul>
+      <button
+        className="border bg-slate-300 p-2"
+        onClick={() => {
+          createBoardModalRef.current?.showModal()
+        }}
+      >
+        + Create New Board
+      </button>
+      <dialog ref={createBoardModalRef} className="p-4 backdrop:bg-gray-700/50">
+        <h2>Add New Board</h2>
+        <Form method="post" className="max-w-80" {...getFormProps(form)}>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={fields.name.id}>Name</Label>
+            <Input
+              {...getInputProps(fields.name, { type: 'text' })}
+              autoComplete="off"
+            />
+            <FieldError
+              id={fields.name.errorId}
+              className="min-h-[1rlh] text-red-700"
+              aria-live="polite"
+              errors={fields.name.errors}
+            />
+          </div>
+          <button
+            type="submit"
+            name={INTENTS.createBoard.fieldName}
+            value={INTENTS.createBoard.value}
+          >
+            {isCreatingBoard ? 'Creating New Board...' : 'Create New Board'}
+          </button>
+        </Form>
+      </dialog>
     </div>
   )
 }
