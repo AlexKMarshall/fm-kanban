@@ -1,5 +1,7 @@
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { ActionFunctionArgs, json, redirect } from '@remix-run/node'
-import { Form, Link, useActionData } from '@remix-run/react'
+import { Form, Link, useActionData, useNavigation } from '@remix-run/react'
 import { z } from 'zod'
 
 import {
@@ -38,68 +40,84 @@ const loginServerSchema = loginSchema.transform(async (data, ctx) => {
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
-  const rawEmail = formData.get('email')
-  const rawPassword = formData.get('password')
 
-  const result = await loginServerSchema.safeParseAsync({
-    email: rawEmail,
-    password: rawPassword,
+  const submission = await parseWithZod(formData, {
+    schema: loginServerSchema,
+    async: true,
   })
 
-  if (!result.success) {
-    return json(result.error.flatten(), { status: 400 })
+  if (submission.status !== 'success') {
+    return json(submission.reply({ hideFields: ['password'] }), { status: 400 })
   }
 
+  const { userId } = submission.value
+
   const redirectHome = redirect('/home')
-  await setAuthOnResponse(redirectHome, result.data.userId)
+  await setAuthOnResponse(redirectHome, userId)
   return redirectHome
 }
 
+const INTENTS = {
+  login: {
+    value: 'login',
+    fieldName: 'intent',
+  },
+} as const
+
 export default function Login() {
-  const actionData = useActionData<typeof action>()
-  const emailErrors = actionData?.fieldErrors.email
-  const passwordErrors = actionData?.fieldErrors.password
+  const lastResult = useActionData<typeof action>()
+  const [form, fields] = useForm<z.infer<typeof loginSchema>>({
+    shouldValidate: 'onBlur',
+    shouldRevalidate: 'onInput',
+    lastResult,
+    constraint: getZodConstraint(loginSchema),
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: loginSchema })
+    },
+  })
+  const navigation = useNavigation()
+  const isLoggingIn =
+    navigation.formData?.get(INTENTS.login.fieldName) === INTENTS.login.value
+
   return (
     <div>
       <h1>Login</h1>
-      <Form method="post" className="max-w-[40ch]">
+      <Form method="post" className="max-w-[40ch]" {...getFormProps(form)}>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor={fields.email.id}>Email</Label>
           <Input
-            type="email"
-            id="email"
-            name="email"
-            required
+            {...getInputProps(fields.email, { type: 'email' })}
             autoComplete="email"
-            aria-invalid={emailErrors?.length ? true : undefined}
-            aria-describedby="email-error"
           />
           <FieldError
-            id="email-error"
+            id={fields.email.errorId}
             className="min-h-[1rlh] text-red-700"
             aria-live="polite"
-            errors={emailErrors}
+            errors={fields.email.errors}
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor={fields.password.id}>Password</Label>
           <Input
-            type="password"
-            id="password"
-            name="password"
-            required
-            autoComplete="new-password"
-            aria-invalid={passwordErrors?.length ? true : undefined}
-            aria-describedby="password-error"
+            {...getInputProps(fields.password, { type: 'password' })}
+            autoComplete="password"
           />
           <FieldError
-            id="password-error"
+            id={fields.password.errorId}
             className="min-h-[1rlh] text-red-700"
             aria-live="polite"
-            errors={passwordErrors}
+            errors={fields.password.errors}
           />
         </div>
-        <button type="submit">Login</button>
+        <FieldError id={form.errorId} aria-live="polite" errors={form.errors} />
+        <button
+          type="submit"
+          name={INTENTS.login.fieldName}
+          value={INTENTS.login.value}
+        >
+          Login
+          <span className={isLoggingIn ? 'animate-pulse' : 'hidden'}>🌀</span>
+        </button>
         <p>
           Don&apos;t have an account? <Link to="/signup">Sign up</Link>
         </p>
