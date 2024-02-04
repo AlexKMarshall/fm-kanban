@@ -11,7 +11,10 @@ datasource db {
 }
 
 model Account {
-  id    String @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   email String @unique
 
   Password Password?
@@ -19,7 +22,10 @@ model Account {
 }
 
 model Password {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   hash      String
   salt      String
   account   Account @relation(fields: [accountId], references: [id])
@@ -27,10 +33,26 @@ model Password {
 }
 
 model Board {
-  id      String  @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   name    String
-  owner   Account @relation(fields: [ownerId], references: [id])
+  owner   Account  @relation(fields: [ownerId], references: [id])
   ownerId String
+  Column  Column[]
 
   @@unique([name, ownerId])
+}
+
+model Column {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name    String
+  Board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId String
+
+  @@unique([name, boardId])
 }

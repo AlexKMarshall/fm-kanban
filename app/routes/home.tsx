@@ -13,7 +13,7 @@ import {
   useLoaderData,
   useNavigation,
 } from '@remix-run/react'
-import { useRef } from 'react'
+import { ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
@@ -31,6 +31,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 const createBoardSchema = z.object({
   name: z.string().min(1),
+  columns: z.array(z.string().optional()).superRefine((columns, ctx) => {
+    columns.forEach((column, index) => {
+      const isLastColumn = index === columns.length - 1
+      if (!column && !isLastColumn) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Required',
+          path: [index],
+        })
+      }
+    })
+  }),
 })
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -64,6 +76,10 @@ export default function Home() {
   const createBoardModalRef = useRef<HTMLDialogElement>(null)
   const lastResult = useActionData<typeof action>()
   const [form, fields] = useForm<z.infer<typeof createBoardSchema>>({
+    defaultValue: {
+      name: '',
+      columns: [''],
+    },
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     lastResult,
@@ -72,12 +88,14 @@ export default function Home() {
       return parseWithZod(formData, { schema: createBoardSchema })
     },
   })
-  const { boards } = useLoaderData<typeof loader>()
+  console.log(form.allErrors)
+  const columns = fields.columns.getFieldList()
   const navigation = useNavigation()
   const isCreatingBoard =
     navigation.formData?.get(INTENTS.createBoard.fieldName) ===
     INTENTS.createBoard.value
 
+  const { boards } = useLoaderData<typeof loader>()
   return (
     <div>
       <h1>Home</h1>
@@ -112,6 +130,27 @@ export default function Home() {
               errors={fields.name.errors}
             />
           </div>
+          <fieldset>
+            <legend>Columns</legend>
+            <ul>
+              {columns.map((column) => (
+                <li key={column.key} className="flex flex-col gap-2">
+                  <ColumnInput {...getInputProps(column, { type: 'text' })} />
+                  <FieldError
+                    id={column.errorId}
+                    className="min-h-[1rlh] text-red-700"
+                    aria-live="polite"
+                    errors={column.errors}
+                  />
+                </li>
+              ))}
+            </ul>
+            <button
+              {...form.insert.getButtonProps({ name: fields.columns.name })}
+            >
+              + Add New Column
+            </button>
+          </fieldset>
           <button
             type="submit"
             name={INTENTS.createBoard.fieldName}
@@ -123,6 +162,14 @@ export default function Home() {
       </dialog>
     </div>
   )
+}
+
+function ColumnInput(props: ComponentPropsWithoutRef<typeof Input>) {
+  const ref = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    ref.current?.focus()
+  }, [])
+  return <Input {...props} ref={ref} />
 }
 
 function createBoard({ name, userId }: { name: string; userId: string }) {
