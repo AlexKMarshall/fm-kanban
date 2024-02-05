@@ -33,6 +33,7 @@ export default function App() {
       <body>
         <header>
           <nav>
+            <Link to="/">Home</Link>
             {userId ? (
               <form action="/logout" method="post">
                 <button>Logout</button>

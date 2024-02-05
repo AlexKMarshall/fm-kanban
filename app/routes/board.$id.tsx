@@ -26,6 +26,11 @@ export default function Board() {
   return (
     <div>
       <h1>{board.name}</h1>
+      <ul>
+        {board.columns.map((column) => (
+          <li key={column.id}>{column.name}</li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -33,5 +38,12 @@ export default function Board() {
 function getBoard({ id, accountId }: { id: string; accountId: string }) {
   return prisma.board.findFirst({
     where: { id, ownerId: accountId },
+    select: {
+      id: true,
+      name: true,
+      columns: {
+        select: { id: true, name: true },
+      },
+    },
   })
 }

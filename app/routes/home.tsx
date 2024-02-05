@@ -31,18 +31,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 const createBoardSchema = z.object({
   name: z.string().min(1),
-  columns: z.array(z.string().optional()).superRefine((columns, ctx) => {
-    columns.forEach((column, index) => {
-      const isLastColumn = index === columns.length - 1
-      if (!column && !isLastColumn) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Required',
-          path: [index],
-        })
-      }
+  columns: z
+    .array(z.string().optional())
+    .superRefine((columns, ctx) => {
+      columns.forEach((column, index) => {
+        const isLastColumn = index === columns.length - 1
+        if (!column && !isLastColumn) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Required',
+            path: [index],
+          })
+        }
+      })
     })
-  }),
+    .transform((columns) => columns.filter(Boolean)),
 })
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -58,9 +61,9 @@ export async function action({ request }: ActionFunctionArgs) {
     return json(submission.reply(), { status: 400 })
   }
 
-  const { name } = submission.value
+  const { name, columns } = submission.value
 
-  const board = await createBoard({ name, userId })
+  const board = await createBoard({ name, userId, columns })
 
   return redirect(`/board/${board.id}`)
 }
@@ -88,7 +91,6 @@ export default function Home() {
       return parseWithZod(formData, { schema: createBoardSchema })
     },
   })
-  console.log(form.allErrors)
   const columns = fields.columns.getFieldList()
   const navigation = useNavigation()
   const isCreatingBoard =
@@ -172,7 +174,15 @@ function ColumnInput(props: ComponentPropsWithoutRef<typeof Input>) {
   return <Input {...props} ref={ref} />
 }
 
-function createBoard({ name, userId }: { name: string; userId: string }) {
+function createBoard({
+  name,
+  userId,
+  columns,
+}: {
+  name: string
+  userId: string
+  columns: string[]
+}) {
   return prisma.board.create({
     data: {
       name,
@@ -180,6 +190,11 @@ function createBoard({ name, userId }: { name: string; userId: string }) {
         connect: {
           id: userId,
         },
+      },
+      columns: {
+        create: columns.map((name) => ({
+          name,
+        })),
       },
     },
   })
