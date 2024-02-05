@@ -116,60 +116,86 @@ export default function Home() {
       >
         + Create New Board
       </button>
-      <dialog ref={createBoardModalRef} className="p-4 backdrop:bg-gray-700/50">
-        <h2>Add New Board</h2>
-        <Form method="post" className="max-w-80" {...getFormProps(form)}>
-          <button
-            type="submit"
-            className="hidden"
-            name={INTENTS.createBoard.fieldName}
-            value={INTENTS.createBoard.value}
-            tabIndex={-1}
-          >
-            Create new board
-          </button>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor={fields.name.id}>Name</Label>
-            <Input
-              {...getInputProps(fields.name, { type: 'text' })}
-              autoComplete="off"
-            />
-            <FieldError
-              id={fields.name.errorId}
-              className="min-h-[1rlh] text-red-700"
-              aria-live="polite"
-              errors={fields.name.errors}
-            />
-          </div>
-          <fieldset>
-            <legend>Columns</legend>
-            <ul>
-              {columns.map((column) => (
-                <li key={column.key} className="flex flex-col gap-2">
-                  <ColumnInput {...getInputProps(column, { type: 'text' })} />
-                  <FieldError
-                    id={column.errorId}
-                    className="min-h-[1rlh] text-red-700"
-                    aria-live="polite"
-                    errors={column.errors}
-                  />
-                </li>
-              ))}
-            </ul>
+      {/* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
+      <dialog
+        ref={createBoardModalRef}
+        className="backdrop:bg-gray-700/50"
+        onClick={(event) => {
+          if (event.target === createBoardModalRef.current) {
+            createBoardModalRef.current.close()
+          }
+        }}
+      >
+        <div className="p-4">
+          <h2>Add New Board</h2>
+          <Form method="post" className="max-w-80" {...getFormProps(form)}>
+            {/* We need this button first in the form to be the default onEnter submission */}
             <button
-              {...form.insert.getButtonProps({ name: fields.columns.name })}
+              type="submit"
+              className="hidden"
+              name={INTENTS.createBoard.fieldName}
+              value={INTENTS.createBoard.value}
+              tabIndex={-1}
             >
-              + Add New Column
+              Create new board
             </button>
-          </fieldset>
-          <button
-            type="submit"
-            name={INTENTS.createBoard.fieldName}
-            value={INTENTS.createBoard.value}
-          >
-            {isCreatingBoard ? 'Creating New Board...' : 'Create New Board'}
-          </button>
-        </Form>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor={fields.name.id}>Name</Label>
+              <Input
+                {...getInputProps(fields.name, { type: 'text' })}
+                autoComplete="off"
+              />
+              <FieldError
+                id={fields.name.errorId}
+                className="min-h-[1rlh] text-red-700"
+                aria-live="polite"
+                errors={fields.name.errors}
+              />
+            </div>
+            <fieldset>
+              <legend>Columns</legend>
+              <ul className="flex flex-col gap-3">
+                {columns.map((column, index) => (
+                  <li key={column.key} className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <ColumnInput
+                        {...getInputProps(column, { type: 'text' })}
+                      />
+                      <button
+                        {...form.remove.getButtonProps({
+                          name: fields.columns.name,
+                          index,
+                        })}
+                        aria-label="Remove"
+                      >
+                        X
+                      </button>
+                    </div>
+                    <FieldError
+                      id={column.errorId}
+                      className="min-h-[1rlh] text-red-700"
+                      aria-live="polite"
+                      errors={column.errors}
+                    />
+                  </li>
+                ))}
+              </ul>
+              <button
+                {...form.insert.getButtonProps({ name: fields.columns.name })}
+              >
+                + Add New Column
+              </button>
+            </fieldset>
+            <button
+              type="submit"
+              name={INTENTS.createBoard.fieldName}
+              value={INTENTS.createBoard.value}
+            >
+              {isCreatingBoard ? 'Creating New Board...' : 'Create New Board'}
+            </button>
+          </Form>
+        </div>
       </dialog>
     </div>
   )
