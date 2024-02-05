@@ -119,6 +119,15 @@ export default function Home() {
       <dialog ref={createBoardModalRef} className="p-4 backdrop:bg-gray-700/50">
         <h2>Add New Board</h2>
         <Form method="post" className="max-w-80" {...getFormProps(form)}>
+          <button
+            type="submit"
+            className="hidden"
+            name={INTENTS.createBoard.fieldName}
+            value={INTENTS.createBoard.value}
+            tabIndex={-1}
+          >
+            Create new board
+          </button>
           <div className="flex flex-col gap-2">
             <Label htmlFor={fields.name.id}>Name</Label>
             <Input
