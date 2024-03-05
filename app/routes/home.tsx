@@ -122,13 +122,14 @@ export default function Home() {
         ref={createBoardModalRef}
         className="backdrop:bg-gray-700/50"
         onClick={(event) => {
-          if (event.target === createBoardModalRef.current) {
-            createBoardModalRef.current.close()
+          if (event.target === event.currentTarget) {
+            event.currentTarget.close()
           }
         }}
+        aria-labelledby="create-board-dialog-title"
       >
         <div className="p-4">
-          <h2>Add New Board</h2>
+          <h2 id="create-board-dialog-title">Add New Board</h2>
           <Form method="post" className="max-w-80" {...getFormProps(form)}>
             {/* We need this button first in the form to be the default onEnter submission */}
             <button
