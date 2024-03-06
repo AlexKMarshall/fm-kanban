@@ -133,7 +133,7 @@ export default function Home() {
           <h2 id="create-board-dialog-title" className="mb-6 text-lg font-bold">
             Add New Board
           </h2>
-          <Form method="post" className="max-w-80" {...getFormProps(form)}>
+          <Form method="post" {...getFormProps(form)}>
             {/* We need this button first in the form to be the default onEnter submission */}
             <button
               type="submit"
@@ -167,6 +167,7 @@ export default function Home() {
                     <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
                       <ColumnInput
                         {...getInputProps(column, { type: 'text' })}
+                        className="w-0 flex-1"
                       />
                       <button
                         {...form.remove.getButtonProps({
