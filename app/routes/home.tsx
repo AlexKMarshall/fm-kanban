@@ -121,7 +121,7 @@ export default function Home() {
       {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
       <dialog
         ref={createBoardModalRef}
-        className="backdrop:bg-gray-700/50"
+        className="w-[30rem] max-w-full bg-transparent p-4 backdrop:bg-gray-700/50"
         onClick={(event) => {
           if (event.target === event.currentTarget) {
             event.currentTarget.close()
@@ -129,8 +129,10 @@ export default function Home() {
         }}
         aria-labelledby="create-board-dialog-title"
       >
-        <div className="p-4">
-          <h2 id="create-board-dialog-title">Add New Board</h2>
+        <div className="rounded-md bg-white p-6 sm:p-8">
+          <h2 id="create-board-dialog-title" className="mb-6 text-lg font-bold">
+            Add New Board
+          </h2>
           <Form method="post" className="max-w-80" {...getFormProps(form)}>
             {/* We need this button first in the form to be the default onEnter submission */}
             <button
