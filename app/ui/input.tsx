@@ -8,7 +8,7 @@ export const Input = forwardRef<
   return (
     <input
       className={tv({
-        base: 'border border-gray-700 aria-[invalid]:border-red-700',
+        base: 'rounded border border-gray-300 px-4 py-2 text-sm placeholder:text-gray-400 aria-[invalid]:border-red-700',
       })({ className })}
       {...props}
       ref={ref}

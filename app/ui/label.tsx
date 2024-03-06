@@ -9,7 +9,7 @@ export const Label = forwardRef<
     <label
       htmlFor={htmlFor}
       className={tv({
-        base: 'font-bold text-gray-700',
+        base: 'text-xs font-bold text-gray-500',
       })({ className })}
       {...props}
       ref={ref}

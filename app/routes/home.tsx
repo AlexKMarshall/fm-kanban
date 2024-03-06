@@ -141,17 +141,19 @@ export default function Home() {
             >
               Create new board
             </button>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={fields.name.id}>Name</Label>
+            <div className="mb-6 flex flex-col gap-2">
+              <div className="flex flex-wrap justify-between gap-2">
+                <Label htmlFor={fields.name.id}>Name</Label>
+                <FieldError
+                  id={fields.name.errorId}
+                  aria-live="polite"
+                  errors={fields.name.errors}
+                />
+              </div>
               <Input
                 {...getInputProps(fields.name, { type: 'text' })}
+                placeholder="e.g. Web Design"
                 autoComplete="off"
-              />
-              <FieldError
-                id={fields.name.errorId}
-                className="min-h-[1rlh] text-red-700"
-                aria-live="polite"
-                errors={fields.name.errors}
               />
             </div>
             <fieldset>
@@ -175,7 +177,7 @@ export default function Home() {
                     </div>
                     <FieldError
                       id={column.errorId}
-                      className="min-h-[1rlh] text-red-700"
+                      className="min-h-[1rlh]"
                       aria-live="polite"
                       errors={column.errors}
                     />
