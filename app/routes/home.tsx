@@ -30,7 +30,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 const createBoardSchema = z.object({
-  name: z.string().min(1),
+  name: z.string({ required_error: "Can't be empty" }),
   columns: z
     .array(z.string().optional())
     .superRefine((columns, ctx) => {
