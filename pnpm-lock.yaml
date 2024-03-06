@@ -14,6 +14,9 @@ dependencies:
   '@prisma/client':
     specifier: 4.15.0
     version: 4.15.0(prisma@4.15.0)
+  '@radix-ui/react-icons':
+    specifier: ^1.3.0
+    version: 1.3.0(react@18.2.0)
   '@remix-run/node':
     specifier: ^2.5.1
     version: 2.5.1(typescript@5.3.3)
@@ -1333,6 +1336,14 @@ packages:
   /@prisma/engines@4.15.0:
     resolution: {integrity: sha512-FTaOCGs0LL0OW68juZlGxFtYviZa4xdQj/rQEdat2txw0s3Vu/saAPKjNVXfIgUsGXmQ72HPgNr6935/P8FNAA==}
     requiresBuild: true
+
+  /@radix-ui/react-icons@1.3.0(react@18.2.0):
+    resolution: {integrity: sha512-jQxj/0LKgp+j9BiTXz3O3sgs26RNet2iLWmsPyRz2SIcR4q/4SbazXfnYwbAr+vLYKSfc7qxzyGQA1HLlYiuNw==}
+    peerDependencies:
+      react: ^16.x || ^17.x || ^18.x
+    dependencies:
+      react: 18.2.0
+    dev: false
 
   /@remix-run/dev@2.5.1(@remix-run/serve@2.5.1)(@types/node@20.11.10)(typescript@5.3.3)(vite@5.0.12):
     resolution: {integrity: sha512-IrYhWANubH+WM62Wz55n8NWT5kBqfbyytXDFlP0VoZLrr1IpJf2GtaT4IA+CODMaNoeXeMACOD5Tw5/Y2bO5lA==}

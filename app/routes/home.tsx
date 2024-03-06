@@ -1,5 +1,6 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { Cross2Icon } from '@radix-ui/react-icons'
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -171,8 +172,9 @@ export default function Home() {
                           index,
                         })}
                         aria-label="Remove"
+                        className="self-center p-1"
                       >
-                        X
+                        <Cross2Icon aria-hidden />
                       </button>
                     </div>
                     <FieldError
