@@ -20,7 +20,7 @@ import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 import { FieldError } from '~/ui/field-error'
 import { Input } from '~/ui/input'
-import { Label } from '~/ui/label'
+import { Label, Legend } from '~/ui/label'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireAuthCookie(request)
@@ -39,7 +39,7 @@ const createBoardSchema = z.object({
         if (!column && !isLastColumn) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'Required',
+            message: "Can't be empty",
             path: [index],
           })
         }
@@ -157,11 +157,11 @@ export default function Home() {
               />
             </div>
             <fieldset>
-              <legend>Columns</legend>
+              <Legend>Columns</Legend>
               <ul className="flex flex-col gap-3">
                 {columns.map((column, index) => (
                   <li key={column.key} className="flex flex-col gap-2">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
                       <ColumnInput
                         {...getInputProps(column, { type: 'text' })}
                       />
@@ -204,6 +204,7 @@ export default function Home() {
   )
 }
 
+/** An input that autofocuses when it mounts. Ideal for use in a field list */
 function ColumnInput(props: ComponentPropsWithoutRef<typeof Input>) {
   const ref = useRef<HTMLInputElement>(null)
   useEffect(() => {
