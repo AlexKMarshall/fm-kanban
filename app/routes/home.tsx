@@ -19,6 +19,7 @@ import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
+import { Button } from '~/ui/button'
 import { FieldError } from '~/ui/field-error'
 import { Input } from '~/ui/input'
 import { Label, Legend } from '~/ui/label'
@@ -133,7 +134,11 @@ export default function Home() {
           <h2 id="create-board-dialog-title" className="mb-6 text-lg font-bold">
             Add New Board
           </h2>
-          <Form method="post" {...getFormProps(form)}>
+          <Form
+            method="post"
+            {...getFormProps(form)}
+            className="flex flex-col gap-6"
+          >
             {/* We need this button first in the form to be the default onEnter submission */}
             <button
               type="submit"
@@ -144,7 +149,7 @@ export default function Home() {
             >
               Create new board
             </button>
-            <div className="mb-6 flex flex-col gap-2">
+            <div className="flex flex-col gap-2">
               <div className="flex flex-wrap justify-between gap-2">
                 <Label htmlFor={fields.name.id}>Name</Label>
                 <FieldError
@@ -159,7 +164,7 @@ export default function Home() {
                 autoComplete="off"
               />
             </div>
-            <fieldset>
+            <fieldset className="flex flex-col gap-3">
               <Legend>Columns</Legend>
               <ul className="flex flex-col gap-3">
                 {columns.map((column, index) => (
@@ -182,26 +187,27 @@ export default function Home() {
                     </div>
                     <FieldError
                       id={column.errorId}
-                      className="min-h-[1rlh]"
                       aria-live="polite"
                       errors={column.errors}
                     />
                   </li>
                 ))}
               </ul>
-              <button
+              <Button
                 {...form.insert.getButtonProps({ name: fields.columns.name })}
+                className="bg-indigo-700/10 text-indigo-700"
               >
                 + Add New Column
-              </button>
+              </Button>
             </fieldset>
-            <button
+            <Button
               type="submit"
               name={INTENTS.createBoard.fieldName}
               value={INTENTS.createBoard.value}
+              className="bg-indigo-700 text-white"
             >
               {isCreatingBoard ? 'Creating New Board...' : 'Create New Board'}
-            </button>
+            </Button>
           </Form>
         </div>
       </dialog>
