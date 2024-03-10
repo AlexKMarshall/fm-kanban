@@ -13,6 +13,7 @@ import {
   Outlet,
   useActionData,
   useLoaderData,
+  useLocation,
   useNavigation,
 } from '@remix-run/react'
 import { ComponentPropsWithoutRef, useEffect, useRef } from 'react'
@@ -28,6 +29,8 @@ import { Label, Legend } from '~/ui/label'
 
 import logoDark from '../assets/logo-dark.svg'
 import logoMobile from '../assets/logo-mobile.svg'
+
+import { useBoardLoaderData } from './boards.$id'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireAuthCookie(request)
@@ -84,6 +87,7 @@ const INTENTS = {
 
 export default function Home() {
   const createBoardModalRef = useRef<HTMLDialogElement>(null)
+  const mobileMenuRef = useRef<HTMLDialogElement>(null)
   const lastResult = useActionData<typeof action>()
   const [form, fields] = useForm<z.infer<typeof createBoardSchema>>({
     defaultValue: {
@@ -105,6 +109,9 @@ export default function Home() {
     INTENTS.createBoard.value
 
   const { boards } = useLoaderData<typeof loader>()
+  const currentBoard = useBoardLoaderData()
+  const location = useLocation()
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-[16rem_1fr] md:grid-cols-[19rem_1fr]">
       <header className="p-8">
@@ -112,40 +119,91 @@ export default function Home() {
           <img src={logoMobile} alt="Kanban" className="block sm:hidden" />
           <img src={logoDark} alt="Kanban" className="hidden sm:block" />
         </Link>
-        <p
-          id="board-listing"
-          className="text-xs font-bold uppercase text-gray-700"
-        >
-          All boards ({boards.length})
-        </p>
-        <nav aria-labelledby="board-listing">
-          <ul>
-            {boards.map((board) => (
-              <li key={board.id}>
-                <Link
-                  to={`/boards/${board.id}`}
-                  className="flex items-start gap-3 py-3 font-bold text-gray-700 aria-[current]:bg-indigo-700 aria-[current]:text-white"
-                >
-                  <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
-                    <BoardIcon />
-                  </span>
-                  {board.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <button
-            onClick={() => {
-              createBoardModalRef.current?.showModal()
-            }}
-            className="flex items-start gap-3 py-3 text-left font-bold text-indigo-700"
-          >
-            <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
-              <BoardIcon />{' '}
-            </span>
-            +&nbsp;Create New Board
+        <h1 className="sm:hidden">
+          <button onClick={() => mobileMenuRef.current?.showModal()}>
+            {currentBoard?.board.name ?? 'Select board'}
           </button>
-        </nav>
+        </h1>
+        {/* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */}
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
+        <dialog
+          key={location.key}
+          ref={mobileMenuRef}
+          className="w-[30rem] max-w-full bg-transparent p-4 backdrop:bg-gray-700/50"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              event.currentTarget.close()
+            }
+          }}
+          aria-label="Mobile menu"
+        >
+          <div className="rounded-md bg-white p-6 sm:p-8">
+            <p className="mb-5 text-xs font-bold uppercase text-gray-700">
+              All boards ({boards.length})
+            </p>
+            <nav>
+              <ul>
+                {boards.map((board) => (
+                  <li key={board.id}>
+                    <Link
+                      to={`/boards/${board.id}`}
+                      className="flex items-start gap-3 py-3 font-bold text-gray-700 aria-[current]:bg-indigo-700 aria-[current]:text-white"
+                    >
+                      <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+                        <BoardIcon />
+                      </span>
+                      {board.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => {
+                  createBoardModalRef.current?.showModal()
+                }}
+                className="flex items-start gap-3 py-3 text-left font-bold text-indigo-700"
+              >
+                <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+                  <BoardIcon />{' '}
+                </span>
+                +&nbsp;Create New Board
+              </button>
+            </nav>
+          </div>
+        </dialog>
+        <div className="hidden sm:block">
+          <p className="mb-5 text-xs font-bold uppercase text-gray-700">
+            All boards ({boards.length})
+          </p>
+          <nav>
+            <ul>
+              {boards.map((board) => (
+                <li key={board.id}>
+                  <Link
+                    to={`/boards/${board.id}`}
+                    className="flex items-start gap-3 py-3 font-bold text-gray-700 aria-[current]:bg-indigo-700 aria-[current]:text-white"
+                  >
+                    <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+                      <BoardIcon />
+                    </span>
+                    {board.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => {
+                createBoardModalRef.current?.showModal()
+              }}
+              className="flex items-start gap-3 py-3 text-left font-bold text-indigo-700"
+            >
+              <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+                <BoardIcon />{' '}
+              </span>
+              +&nbsp;Create New Board
+            </button>
+          </nav>
+        </div>
       </header>
       <main>
         <Outlet />
@@ -153,6 +211,7 @@ export default function Home() {
       {/* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */}
       {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
       <dialog
+        key={location.key}
         ref={createBoardModalRef}
         className="w-[30rem] max-w-full bg-transparent p-4 backdrop:bg-gray-700/50"
         onClick={(event) => {

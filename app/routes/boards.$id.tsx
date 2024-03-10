@@ -1,9 +1,11 @@
 import { LoaderFunctionArgs, json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData, useRouteLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
+
+const ROUTE_ID = 'routes/boards.$id'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const accountId = await requireAuthCookie(request)
@@ -18,6 +20,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   return json({ board })
+}
+
+export function useBoardLoaderData() {
+  return useRouteLoaderData<typeof loader>(ROUTE_ID)
 }
 
 export default function Board() {
