@@ -32,7 +32,7 @@ export default function App() {
       </head>
       <body>
         <header>
-          <nav>
+          <nav className="flex justify-between gap-4">
             <Link to="/">Home</Link>
             {userId ? (
               <form action="/logout" method="post">

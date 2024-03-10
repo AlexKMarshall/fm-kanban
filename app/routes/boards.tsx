@@ -1,6 +1,6 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { Cross2Icon, TableIcon } from '@radix-ui/react-icons'
+import { Cross2Icon } from '@radix-ui/react-icons'
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -22,8 +22,11 @@ import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 import { Button, IconButton } from '~/ui/button'
 import { FieldError } from '~/ui/field-error'
+import { BoardIcon } from '~/ui/icons/BoardIcon'
 import { Input } from '~/ui/input'
 import { Label, Legend } from '~/ui/label'
+
+import logoDark from '../assets/logo-dark.svg'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireAuthCookie(request)
@@ -103,32 +106,39 @@ export default function Home() {
   const { boards } = useLoaderData<typeof loader>()
   return (
     <div>
-      <h1>Kanban</h1>
-      <div className="px-8">
-        <h2 className="text-xs font-bold uppercase text-gray-700">
-          All boards ({boards.length})
-        </h2>
-        <ul>
-          {boards.map((board) => (
-            <li key={board.id}>
-              <Link
-                to={`/boards/${board.id}`}
-                className="flex items-center gap-3 py-3 font-bold text-gray-700 aria-[current]:bg-indigo-700 aria-[current]:text-white"
-              >
-                <TableIcon aria-hidden />
-                {board.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <button
-          onClick={() => {
-            createBoardModalRef.current?.showModal()
-          }}
-          className="flex items-center gap-3 py-3 font-bold text-indigo-700"
+      <div className="p-8">
+        <Link to="/" aria-label="Kanban home">
+          <img src={logoDark} alt="Kanban" />
+        </Link>
+        <p
+          id="board-listing"
+          className="text-xs font-bold uppercase text-gray-700"
         >
-          <TableIcon aria-hidden /> + Create New Board
-        </button>
+          All boards ({boards.length})
+        </p>
+        <nav aria-labelledby="board-listing">
+          <ul>
+            {boards.map((board) => (
+              <li key={board.id}>
+                <Link
+                  to={`/boards/${board.id}`}
+                  className="flex items-center gap-3 py-3 font-bold text-gray-700 aria-[current]:bg-indigo-700 aria-[current]:text-white"
+                >
+                  <BoardIcon />
+                  {board.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={() => {
+              createBoardModalRef.current?.showModal()
+            }}
+            className="flex items-center gap-3 py-3 font-bold text-indigo-700"
+          >
+            <BoardIcon /> + Create New Board
+          </button>
+        </nav>
       </div>
       <Outlet />
       {/* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */}
