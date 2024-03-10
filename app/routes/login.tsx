@@ -52,7 +52,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const { userId } = submission.value
 
-  const redirectHome = redirect('/home')
+  const redirectHome = redirect('/')
   await setAuthOnResponse(redirectHome, userId)
   return redirectHome
 }

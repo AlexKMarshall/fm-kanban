@@ -1,6 +1,6 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { Cross2Icon } from '@radix-ui/react-icons'
+import { Cross2Icon, TableIcon } from '@radix-ui/react-icons'
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -10,6 +10,7 @@ import {
 import {
   Form,
   Link,
+  Outlet,
   useActionData,
   useLoaderData,
   useNavigation,
@@ -19,7 +20,7 @@ import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
-import { Button } from '~/ui/button'
+import { Button, IconButton } from '~/ui/button'
 import { FieldError } from '~/ui/field-error'
 import { Input } from '~/ui/input'
 import { Label, Legend } from '~/ui/label'
@@ -67,7 +68,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const board = await createBoard({ name, userId, columns })
 
-  return redirect(`/board/${board.id}`)
+  return redirect(`/boards/${board.id}`)
 }
 
 const INTENTS = {
@@ -102,22 +103,34 @@ export default function Home() {
   const { boards } = useLoaderData<typeof loader>()
   return (
     <div>
-      <h1>Home</h1>
-      <ul>
-        {boards.map((board) => (
-          <li key={board.id}>
-            <Link to={`/board/${board.id}`}>{board.name}</Link>
-          </li>
-        ))}
-      </ul>
-      <button
-        className="border bg-slate-300 p-2"
-        onClick={() => {
-          createBoardModalRef.current?.showModal()
-        }}
-      >
-        + Create New Board
-      </button>
+      <h1>Kanban</h1>
+      <div className="px-8">
+        <h2 className="text-xs font-bold uppercase text-gray-700">
+          All boards ({boards.length})
+        </h2>
+        <ul>
+          {boards.map((board) => (
+            <li key={board.id}>
+              <Link
+                to={`/boards/${board.id}`}
+                className="flex items-center gap-3 py-3 font-bold text-gray-700 aria-[current]:bg-indigo-700 aria-[current]:text-white"
+              >
+                <TableIcon aria-hidden />
+                {board.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <button
+          onClick={() => {
+            createBoardModalRef.current?.showModal()
+          }}
+          className="flex items-center gap-3 py-3 font-bold text-indigo-700"
+        >
+          <TableIcon aria-hidden /> + Create New Board
+        </button>
+      </div>
+      <Outlet />
       {/* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */}
       {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
       <dialog
@@ -140,7 +153,7 @@ export default function Home() {
             className="flex flex-col gap-6"
           >
             {/* We need this button first in the form to be the default onEnter submission */}
-            <button
+            <Button
               type="submit"
               className="hidden"
               name={INTENTS.createBoard.fieldName}
@@ -148,7 +161,7 @@ export default function Home() {
               tabIndex={-1}
             >
               Create new board
-            </button>
+            </Button>
             <div className="flex flex-col gap-2">
               <div className="flex flex-wrap justify-between gap-2">
                 <Label htmlFor={fields.name.id}>Name</Label>
@@ -174,16 +187,16 @@ export default function Home() {
                         {...getInputProps(column, { type: 'text' })}
                         className="w-0 flex-1"
                       />
-                      <button
+                      <IconButton
                         {...form.remove.getButtonProps({
                           name: fields.columns.name,
                           index,
                         })}
                         aria-label="Remove"
-                        className="self-center p-1"
+                        className="self-center"
                       >
                         <Cross2Icon aria-hidden />
-                      </button>
+                      </IconButton>
                     </div>
                     <FieldError
                       id={column.errorId}

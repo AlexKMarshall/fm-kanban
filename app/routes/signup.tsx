@@ -55,7 +55,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const { email, password } = submission.value
 
   const user = await createAccount({ email, password })
-  const redirectHome = redirect('/home')
+  const redirectHome = redirect('/')
   await setAuthOnResponse(redirectHome, user.id)
   return redirectHome
 }
