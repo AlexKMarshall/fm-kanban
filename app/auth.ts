@@ -21,7 +21,7 @@ export async function setAuthOnResponse(response: Response, userId: string) {
   response.headers.append('Set-Cookie', await authCookie.serialize(userId))
 }
 
-export async function getAuthFromRequest(request: Request) {
+async function getAuthFromRequest(request: Request) {
   const cookieString = request.headers.get('Cookie')
 
   const authCookieResult = authCookieSchema.safeParse(

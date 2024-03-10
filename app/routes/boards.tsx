@@ -27,6 +27,7 @@ import { Input } from '~/ui/input'
 import { Label, Legend } from '~/ui/label'
 
 import logoDark from '../assets/logo-dark.svg'
+import logoMobile from '../assets/logo-mobile.svg'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireAuthCookie(request)
@@ -105,10 +106,11 @@ export default function Home() {
 
   const { boards } = useLoaderData<typeof loader>()
   return (
-    <div>
-      <div className="p-8">
-        <Link to="/" aria-label="Kanban home">
-          <img src={logoDark} alt="Kanban" />
+    <div className="grid grid-cols-1 sm:grid-cols-[16rem_1fr] md:grid-cols-[19rem_1fr]">
+      <header className="p-8">
+        <Link to="/" aria-label="Kanban home" className="mb-14 block">
+          <img src={logoMobile} alt="Kanban" className="block sm:hidden" />
+          <img src={logoDark} alt="Kanban" className="hidden sm:block" />
         </Link>
         <p
           id="board-listing"
@@ -122,9 +124,11 @@ export default function Home() {
               <li key={board.id}>
                 <Link
                   to={`/boards/${board.id}`}
-                  className="flex items-center gap-3 py-3 font-bold text-gray-700 aria-[current]:bg-indigo-700 aria-[current]:text-white"
+                  className="flex items-start gap-3 py-3 font-bold text-gray-700 aria-[current]:bg-indigo-700 aria-[current]:text-white"
                 >
-                  <BoardIcon />
+                  <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+                    <BoardIcon />
+                  </span>
                   {board.name}
                 </Link>
               </li>
@@ -134,13 +138,18 @@ export default function Home() {
             onClick={() => {
               createBoardModalRef.current?.showModal()
             }}
-            className="flex items-center gap-3 py-3 font-bold text-indigo-700"
+            className="flex items-start gap-3 py-3 text-left font-bold text-indigo-700"
           >
-            <BoardIcon /> + Create New Board
+            <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+              <BoardIcon />{' '}
+            </span>
+            +&nbsp;Create New Board
           </button>
         </nav>
-      </div>
-      <Outlet />
+      </header>
+      <main>
+        <Outlet />
+      </main>
       {/* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */}
       {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
       <dialog
