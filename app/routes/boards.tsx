@@ -24,6 +24,7 @@ import { prisma } from '~/db/prisma.server'
 import { Button, IconButton } from '~/ui/button'
 import { FieldError } from '~/ui/field-error'
 import { BoardIcon } from '~/ui/icons/BoardIcon'
+import { ChevronDownIcon } from '~/ui/icons/ChevronDownIcon'
 import { Input } from '~/ui/input'
 import { Label, Legend } from '~/ui/label'
 
@@ -115,15 +116,28 @@ export default function Home() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-[16rem_1fr] md:grid-cols-[19rem_1fr]">
       <header className="p-8">
-        <Link to="/" aria-label="Kanban home" className="mb-14 block">
-          <img src={logoMobile} alt="Kanban" className="block sm:hidden" />
-          <img src={logoDark} alt="Kanban" className="hidden sm:block" />
-        </Link>
-        <h1 className="sm:hidden">
-          <button onClick={() => mobileMenuRef.current?.showModal()}>
-            {currentBoard?.board.name ?? 'Select board'}
-          </button>
-        </h1>
+        <div className="flex items-start gap-4 text-lg sm:mb-14">
+          <Link to="/" aria-label="Kanban home">
+            <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+              <img src={logoMobile} alt="Kanban" className="block sm:hidden" />
+              <img src={logoDark} alt="Kanban" className="hidden sm:block" />
+            </span>
+          </Link>
+          <h1 className="sm:hidden">
+            <button
+              onClick={() => mobileMenuRef.current?.showModal()}
+              className="flex items-start gap-2 text-left text-lg font-bold"
+            >
+              {currentBoard?.board.name}{' '}
+              <span className={currentBoard?.board.name ? 'sr-only' : ''}>
+                Select a board
+              </span>
+              <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+                <ChevronDownIcon className="text-indigo-700" />
+              </span>
+            </button>
+          </h1>
+        </div>
         {/* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */}
         {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
         <dialog
