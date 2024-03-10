@@ -4,6 +4,7 @@ import { Cross2Icon } from '@radix-ui/react-icons'
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
+  SerializeFrom,
   json,
   redirect,
 } from '@remix-run/node'
@@ -79,6 +80,8 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect(`/boards/${board.id}`)
 }
 
+type BoardsLoaderData = SerializeFrom<typeof loader>
+
 const INTENTS = {
   createBoard: {
     value: 'createBoard',
@@ -152,72 +155,21 @@ export default function Home() {
           aria-label="Mobile menu"
         >
           <div className="rounded-md bg-white p-6 sm:p-8">
-            <p className="mb-5 text-xs font-bold uppercase text-gray-700">
-              All boards ({boards.length})
-            </p>
-            <nav>
-              <ul>
-                {boards.map((board) => (
-                  <li key={board.id}>
-                    <Link
-                      to={`/boards/${board.id}`}
-                      className="flex items-start gap-3 py-3 font-bold text-gray-700 aria-[current]:bg-indigo-700 aria-[current]:text-white"
-                    >
-                      <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
-                        <BoardIcon />
-                      </span>
-                      {board.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => {
-                  createBoardModalRef.current?.showModal()
-                }}
-                className="flex items-start gap-3 py-3 text-left font-bold text-indigo-700"
-              >
-                <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
-                  <BoardIcon />{' '}
-                </span>
-                +&nbsp;Create New Board
-              </button>
-            </nav>
-          </div>
-        </dialog>
-        <div className="hidden sm:block">
-          <p className="mb-5 text-xs font-bold uppercase text-gray-700">
-            All boards ({boards.length})
-          </p>
-          <nav>
-            <ul>
-              {boards.map((board) => (
-                <li key={board.id}>
-                  <Link
-                    to={`/boards/${board.id}`}
-                    className="flex items-start gap-3 py-3 font-bold text-gray-700 aria-[current]:bg-indigo-700 aria-[current]:text-white"
-                  >
-                    <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
-                      <BoardIcon />
-                    </span>
-                    {board.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={() => {
+            <BoardsNav
+              boards={boards}
+              onCreateBoardClick={() => {
                 createBoardModalRef.current?.showModal()
               }}
-              className="flex items-start gap-3 py-3 text-left font-bold text-indigo-700"
-            >
-              <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
-                <BoardIcon />{' '}
-              </span>
-              +&nbsp;Create New Board
-            </button>
-          </nav>
-        </div>
+            />
+          </div>
+        </dialog>
+        <BoardsNav
+          boards={boards}
+          onCreateBoardClick={() => {
+            createBoardModalRef.current?.showModal()
+          }}
+          className="hidden sm:block"
+        />
       </header>
       <main>
         <Outlet />
@@ -317,6 +269,48 @@ export default function Home() {
         </div>
       </dialog>
     </div>
+  )
+}
+
+function BoardsNav({
+  boards,
+  onCreateBoardClick,
+  className,
+}: {
+  boards: BoardsLoaderData['boards']
+  onCreateBoardClick: () => void
+  className?: string
+}) {
+  return (
+    <nav className={className}>
+      <p className="mb-5 text-xs font-bold uppercase text-gray-700">
+        All boards ({boards.length})
+      </p>
+      <ul>
+        {boards.map((board) => (
+          <li key={board.id}>
+            <Link
+              to={`/boards/${board.id}`}
+              className="flex items-start gap-3 py-3 font-bold text-gray-700 aria-[current]:bg-indigo-700 aria-[current]:text-white"
+            >
+              <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+                <BoardIcon />
+              </span>
+              {board.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <button
+        onClick={onCreateBoardClick}
+        className="flex items-start gap-3 py-3 text-left font-bold text-indigo-700"
+      >
+        <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+          <BoardIcon />{' '}
+        </span>
+        +&nbsp;Create New Board
+      </button>
+    </nav>
   )
 }
 
