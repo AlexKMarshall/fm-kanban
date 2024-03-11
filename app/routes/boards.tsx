@@ -171,7 +171,7 @@ export default function Home() {
           className="hidden sm:block"
         />
       </header>
-      <main>
+      <main className="flex">
         <Outlet />
       </main>
       {/* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */}

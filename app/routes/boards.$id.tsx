@@ -4,6 +4,7 @@ import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
+import { Button } from '~/ui/button'
 
 const ROUTE_ID = 'routes/boards.$id'
 
@@ -30,8 +31,13 @@ export default function Board() {
   const { board } = useLoaderData<typeof loader>()
 
   return (
-    <div>
-      <h1>{board.name}</h1>
+    <div className="flex-grow border-l border-l-gray-200 bg-gray-50">
+      <div className="flex items-center gap-8 border-b border-b-gray-200 bg-white p-4">
+        <h1 className="text-xl font-bold">{board.name}</h1>
+        <Button className="text-default ml-auto bg-indigo-300 text-white">
+          + Add New Task
+        </Button>
+      </div>
       <ul>
         {board.columns.map((column) => (
           <li key={column.id}>{column.name}</li>
