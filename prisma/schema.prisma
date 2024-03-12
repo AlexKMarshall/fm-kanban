@@ -41,6 +41,7 @@ model Board {
   owner   Account  @relation(fields: [ownerId], references: [id])
   ownerId String
   columns Column[]
+  items   Item[]
 
   @@unique([name, ownerId])
 }
@@ -53,6 +54,19 @@ model Column {
   name    String
   Board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
   boardId String
+  Item    Item[]
 
   @@unique([name, boardId])
+}
+
+model Item {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+
+  Column   Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  columnId String
+
+  Board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId String
 }
