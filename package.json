@@ -12,7 +12,9 @@
     "typecheck": "tsc",
     "knip": "knip",
     "prepare": "husky && husky install",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push --skip-generate"
   },
   "dependencies": {
     "@conform-to/react": "^1.0.0",
