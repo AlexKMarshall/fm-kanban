@@ -9,7 +9,9 @@
       "dependsOn": ["db:generate"],
       "outputs": ["build/**"]
     },
-    "typecheck": {},
+    "typecheck": {
+      "dependsOn": ["db:generate"]
+    },
     "knip": {},
     "lint": {},
     "format": {},
