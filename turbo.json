@@ -5,6 +5,10 @@
       "dependsOn": ["db:generate"],
       "persistent": true
     },
+    "start": {
+      "dependsOn": ["build"],
+      "persistent": true
+    },
     "build": {
       "dependsOn": ["db:generate"],
       "outputs": ["build/**"]
