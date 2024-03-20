@@ -28,7 +28,7 @@
     "prettier": "3.2.5",
     "start-server-and-test": "2.0.3",
     "turbo": "1.12.5",
-    "typescript": "5.4.2"
+    "typescript": "5.4.3"
   },
   "engines": {
     "node": "21.7.1"
