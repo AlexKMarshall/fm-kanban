@@ -57,6 +57,9 @@ importers:
         specifier: 3.22.4
         version: 3.22.4
     devDependencies:
+      '@fm-kanban/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
       '@playwright/test':
         specifier: 1.42.1
         version: 1.42.1
@@ -105,9 +108,6 @@ importers:
       eslint-plugin-react-hooks:
         specifier: 4.6.0
         version: 4.6.0(eslint@8.57.0)
-      husky:
-        specifier: 9.0.11
-        version: 9.0.11
       knip:
         specifier: 5.1.4
         version: 5.1.4(@types/node@20.11.30)(typescript@5.4.2)
@@ -138,6 +138,8 @@ importers:
       vite-tsconfig-paths:
         specifier: 4.3.2
         version: 4.3.2(typescript@5.4.2)(vite@5.2.0)
+
+  packages/tsconfig: {}
 
 packages:
 
