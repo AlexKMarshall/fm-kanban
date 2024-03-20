@@ -57,7 +57,7 @@ importers:
         specifier: 3.2.5
         version: 3.2.5
       start-server-and-test:
-        specifier: ^2.0.3
+        specifier: 2.0.3
         version: 2.0.3
       turbo:
         specifier: 1.12.5
