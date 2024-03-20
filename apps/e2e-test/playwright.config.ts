@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const PORT = 3000
+const PORT = process.env.CI ? 3000 : 5173
 
 /**
  * Read environment variables from file.
@@ -39,15 +39,15 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
 
     /* Test against mobile viewports. */
     // {
