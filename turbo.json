@@ -3,7 +3,8 @@
   "pipeline": {
     "dev": {
       "dependsOn": ["db:generate"],
-      "persistent": true
+      "persistent": true,
+      "cache": false
     },
     "start": {
       "dependsOn": ["build"],
@@ -26,6 +27,9 @@
       "cache": false
     },
     "db:deploy": {},
-    "test:e2e": {}
+    "test:e2e": {},
+    "test:e2e:dev": {
+      "persistent": true
+    }
   }
 }

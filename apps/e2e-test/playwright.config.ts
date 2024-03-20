@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const PORT = 3000
+const PORT = process.env.CI ? 3000 : 5173
 
 /**
  * Read environment variables from file.
