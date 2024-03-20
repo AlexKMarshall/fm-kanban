@@ -111,9 +111,6 @@ importers:
       '@fm-kanban/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
-      '@playwright/test':
-        specifier: 1.42.1
-        version: 1.42.1
       '@remix-run/dev':
         specifier: 2.8.1
         version: 2.8.1(@remix-run/serve@2.8.1)(@types/node@20.11.30)(typescript@5.4.2)(vite@5.2.0)
@@ -189,9 +186,6 @@ importers:
       vite-tsconfig-paths:
         specifier: 4.3.2
         version: 4.3.2(typescript@5.4.2)(vite@5.2.0)
-      wait-on:
-        specifier: ^7.2.0
-        version: 7.2.0(debug@4.3.4)
 
   packages/tsconfig: {}
 
@@ -2647,6 +2641,7 @@ packages:
   /clone@1.0.4:
     resolution: {integrity: sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg==}
     engines: {node: '>=0.8'}
+    requiresBuild: true
     dev: true
 
   /color-convert@1.9.3:
@@ -2875,6 +2870,7 @@ packages:
 
   /defaults@1.0.4:
     resolution: {integrity: sha512-eFuaLoy/Rxalv2kr+lqMlUnrDWV+3j4pljOIJgLIhI058IQfWJ7vXhyEIHu+HtC738klGALYxOKDO0bQP3tg8A==}
+    requiresBuild: true
     dependencies:
       clone: 1.0.4
     dev: true

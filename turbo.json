@@ -25,9 +25,6 @@
     "db:push": {
       "cache": false
     },
-    "test:e2e": {},
-    "wait": {
-      "cache": false
-    }
+    "test:e2e": {}
   }
 }

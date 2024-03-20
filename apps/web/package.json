@@ -9,13 +9,11 @@
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "format": "prettier --ignore-path .gitignore \"**/*.{cjs,mjs,js,jsx,ts,tsx,json,md}\" --check",
     "start": "remix-serve ./build/server/index.js",
-    "wait": "wait-on http://localhost:3000",
     "typecheck": "tsc",
     "knip": "knip",
     "lint-staged": "lint-staged",
     "db:generate": "prisma generate",
-    "db:push": "prisma db push --skip-generate",
-    "test:e2e:dev": "playwright test --ui"
+    "db:push": "prisma db push --skip-generate"
   },
   "dependencies": {
     "@conform-to/react": "1.0.4",
@@ -34,7 +32,6 @@
   },
   "devDependencies": {
     "@fm-kanban/tsconfig": "workspace:*",
-    "@playwright/test": "1.42.1",
     "@remix-run/dev": "2.8.1",
     "@tailwindcss/forms": "0.5.7",
     "@total-typescript/ts-reset": "0.5.1",
@@ -59,8 +56,7 @@
     "turbo": "1.12.5",
     "typescript": "5.4.2",
     "vite": "5.2.0",
-    "vite-tsconfig-paths": "4.3.2",
-    "wait-on": "^7.2.0"
+    "vite-tsconfig-paths": "4.3.2"
   },
   "engines": {
     "node": "21.7.1"
