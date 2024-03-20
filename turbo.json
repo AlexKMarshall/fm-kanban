@@ -24,6 +24,7 @@
     },
     "db:push": {
       "cache": false
-    }
+    },
+    "test:e2e": {}
   }
 }
