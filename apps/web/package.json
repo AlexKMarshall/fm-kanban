@@ -1,5 +1,5 @@
 {
-  "name": "fm-kanban",
+  "name": "@fm-kanban/web",
   "private": true,
   "sideEffects": false,
   "type": "module",
