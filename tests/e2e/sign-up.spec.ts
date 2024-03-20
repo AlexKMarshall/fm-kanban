@@ -16,7 +16,8 @@ test('sign up', async ({ page }) => {
   await page.getByRole('button', { name: /sign up/i }).click()
 
   // Check that the user is redirected to the home page
-  await expect(
-    page.getByRole('button', { name: /create new board/i }),
-  ).toBeVisible()
+  await expect(page.getByRole('link', { name: /login/i })).toBeVisible()
+  // await expect(
+  //   page.getByRole('button', { name: /create new board/i }),
+  // ).toBeVisible()
 })

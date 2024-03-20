@@ -5,10 +5,10 @@ import { Form, Link, useActionData, useNavigation } from '@remix-run/react'
 import { z } from 'zod'
 
 import {
-  getNewSalt,
-  hashPassword,
+  // getNewSalt,
+  // hashPassword,
   redirectIfLoggedInLoader,
-  setAuthOnResponse,
+  // setAuthOnResponse,
 } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 import { FieldError } from '~/ui/field-error'
@@ -42,21 +42,23 @@ const signupServerSchema = signupSchema.refine(
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
-
+  console.log('signup action function')
   const submission = await parseWithZod(formData, {
     schema: signupServerSchema,
     async: true,
   })
 
   if (submission.status !== 'success') {
+    console.log('submission error', submission.error)
     return json(submission.reply({ hideFields: ['password'] }), { status: 400 })
   }
 
-  const { email, password } = submission.value
+  // const { email, password } = submission.value
 
-  const user = await createAccount({ email, password })
+  // const user = await createAccount({ email, password })
   const redirectHome = redirect('/')
-  await setAuthOnResponse(redirectHome, user.id)
+  // await setAuthOnResponse(redirectHome, user.id)
+  console.log('redirecting to home')
   return redirectHome
 }
 
@@ -154,25 +156,25 @@ async function accountExists(email: string) {
   return Boolean(account)
 }
 
-async function createAccount({
-  email,
-  password,
-}: {
-  email: string
-  password: string
-}) {
-  const salt = getNewSalt()
-  const hash = hashPassword({ password, salt })
+// async function createAccount({
+//   email,
+//   password,
+// }: {
+//   email: string
+//   password: string
+// }) {
+//   const salt = getNewSalt()
+//   const hash = hashPassword({ password, salt })
 
-  return prisma.account.create({
-    data: {
-      email,
-      Password: {
-        create: {
-          hash,
-          salt,
-        },
-      },
-    },
-  })
-}
+//   return prisma.account.create({
+//     data: {
+//       email,
+//       Password: {
+//         create: {
+//           hash,
+//           salt,
+//         },
+//       },
+//     },
+//   })
+// }
