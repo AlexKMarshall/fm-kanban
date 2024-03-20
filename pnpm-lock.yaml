@@ -108,9 +108,6 @@ importers:
       eslint-plugin-react-hooks:
         specifier: 4.6.0
         version: 4.6.0(eslint@8.57.0)
-      husky:
-        specifier: 9.0.11
-        version: 9.0.11
       knip:
         specifier: 5.1.4
         version: 5.1.4(@types/node@20.11.30)(typescript@5.4.2)
