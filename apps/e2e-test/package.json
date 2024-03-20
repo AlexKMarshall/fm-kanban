@@ -1,0 +1,41 @@
+{
+  "name": "@fm-kanban/e2e-tests",
+  "sideEffects": false,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
+    "format": "prettier --ignore-path .gitignore \"**/*.{cjs,mjs,js,jsx,ts,tsx,json,md}\" --check",
+    "typecheck": "tsc",
+    "knip": "knip",
+    "lint-staged": "lint-staged",
+    "test:e2e": "start-server-and-test \"(cd ../web/ && turbo start)\" http://localhost:3000 \"playwright test\"",
+    "test:e2e:dev": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@fm-kanban/tsconfig": "workspace:*",
+    "@playwright/test": "1.42.1",
+    "@total-typescript/ts-reset": "0.5.1",
+    "@types/node": "20.11.30",
+    "@typescript-eslint/eslint-plugin": "7.3.1",
+    "@typescript-eslint/parser": "7.3.1",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-import-resolver-typescript": "3.6.1",
+    "eslint-plugin-import": "2.29.1",
+    "knip": "5.1.4",
+    "lint-staged": "15.2.2",
+    "prettier": "3.2.5",
+    "start-server-and-test": "^2.0.3",
+    "turbo": "1.12.5",
+    "typescript": "5.4.2"
+  },
+  "engines": {
+    "node": "21.7.1"
+  },
+  "lint-staged": {
+    "**/!(*$*).{cjs,mjs,js,jsx,ts,tsx}": [
+      "turbo lint -- --fix",
+      "turbo format -- --write"
+    ]
+  }
+}
