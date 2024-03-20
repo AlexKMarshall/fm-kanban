@@ -41,6 +41,8 @@ jobs:
         run: pnpm dlx turbo run build knip typecheck lint format
 
   e2e-tests:
+    env:
+      COOKIE_SECRET: 'E2E_TESTS_DUMMY_COOKIE_SECRET'
     name: 'Run e2e tests'
     runs-on: ubuntu-latest
     steps:
