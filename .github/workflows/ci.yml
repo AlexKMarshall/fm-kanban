@@ -1,10 +1,10 @@
-name: 'CI'
+name: "CI"
 on:
   - push
 
 jobs:
   static-checks:
-    name: 'Run static checks'
+    name: "Run static checks"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,8 +42,8 @@ jobs:
 
   e2e-tests:
     env:
-      COOKIE_SECRET: 'E2E_TESTS_DUMMY_COOKIE_SECRET'
-    name: 'Run e2e tests'
+      COOKIE_SECRET: "E2E_TESTS_DUMMY_COOKIE_SECRET"
+    name: "Run e2e tests"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,7 +76,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+        run: pnpm --filter web exec playwright install --with-deps
 
       - name: Run e2e tests
         run: pnpm dlx turbo run test:e2e
