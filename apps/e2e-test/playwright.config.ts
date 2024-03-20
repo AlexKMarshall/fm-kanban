@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const PORT = process.env.CI ? 3000 : 5173
+const PORT = 3000
 
 /**
  * Read environment variables from file.
@@ -71,11 +71,11 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: process.env.CI ? 'turbo start' : 'turbo dev',
-    port: PORT,
-    reuseExistingServer: !process.env.CI,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  },
+  // webServer: {
+  //   command: process.env.CI ? 'turbo start' : 'turbo dev',
+  //   port: PORT,
+  //   reuseExistingServer: !process.env.CI,
+  //   stdout: 'pipe',
+  //   stderr: 'pipe',
+  // },
 })

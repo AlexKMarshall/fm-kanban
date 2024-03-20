@@ -13,9 +13,7 @@
     "knip": "knip",
     "lint-staged": "lint-staged",
     "db:generate": "prisma generate",
-    "db:push": "prisma db push --skip-generate",
-    "test:e2e": "playwright test",
-    "test:e2e:dev": "playwright test --ui"
+    "db:push": "prisma db push --skip-generate"
   },
   "dependencies": {
     "@conform-to/react": "1.0.4",
@@ -34,7 +32,6 @@
   },
   "devDependencies": {
     "@fm-kanban/tsconfig": "workspace:*",
-    "@playwright/test": "1.42.1",
     "@remix-run/dev": "2.8.1",
     "@tailwindcss/forms": "0.5.7",
     "@total-typescript/ts-reset": "0.5.1",
