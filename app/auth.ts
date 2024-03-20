@@ -6,7 +6,7 @@ import { z } from 'zod'
 const secret = z.string().min(12).parse(process.env.COOKIE_SECRET)
 
 // The auth cookie is the user Id, but if the user isn't logged in it'll be null
-const authCookieSchema = z.string().min(1).nullish()
+const authCookieSchema = z.string().min(1).nullable()
 
 const authCookie = createCookie('auth', {
   httpOnly: true,
@@ -22,9 +22,7 @@ export async function setAuthOnResponse(response: Response, userId: string) {
 }
 
 async function getAuthFromRequest(request: Request) {
-  console.log('headers', [...request.headers.entries()])
   const cookieString = request.headers.get('Cookie')
-  console.log({ cookieString })
 
   const authCookieResult = authCookieSchema.safeParse(
     await authCookie.parse(cookieString),
