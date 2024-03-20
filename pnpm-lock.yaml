@@ -18,7 +18,7 @@ importers:
   apps/e2e-test:
     devDependencies:
       '@faker-js/faker':
-        specifier: ^8.4.1
+        specifier: 8.4.1
         version: 8.4.1
       '@fm-kanban/tsconfig':
         specifier: workspace:*
