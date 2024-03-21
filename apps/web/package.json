@@ -10,10 +10,7 @@
     "format": "prettier --ignore-path .gitignore \"**/*.{cjs,mjs,js,jsx,ts,tsx,json,md}\" --check",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc",
-    "knip": "knip",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push --skip-generate",
-    "db:deploy": "prisma migrate deploy"
+    "knip": "knip"
   },
   "dependencies": {
     "@conform-to/react": "1.0.4",
@@ -50,7 +47,6 @@
     "knip": "5.1.5",
     "prettier": "3.2.5",
     "prettier-plugin-tailwindcss": "0.5.12",
-    "prisma": "5.11.0",
     "tailwindcss": "3.4.1",
     "typescript": "5.4.3",
     "vite": "5.2.2",

@@ -171,9 +171,6 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: 0.5.12
         version: 0.5.12(prettier@3.2.5)
-      prisma:
-        specifier: 5.11.0
-        version: 5.11.0
       tailwindcss:
         specifier: 3.4.1
         version: 3.4.1
