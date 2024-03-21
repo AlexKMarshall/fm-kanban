@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@fm-kanban/database'
 
 const prisma = new PrismaClient()
 

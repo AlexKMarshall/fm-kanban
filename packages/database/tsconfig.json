@@ -1,0 +1,7 @@
+{
+  "extends": "@fm-kanban/tsconfig/base.json",
+  "include": ["env.d.ts", "**/*.ts", "**/*.tsx"],
+  "compilerOptions": {
+    "baseUrl": "."
+  }
+}
