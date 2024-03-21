@@ -28,7 +28,7 @@ model Password {
 
   hash      String
   salt      String
-  account   Account @relation(fields: [accountId], references: [id])
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId String  @unique
 }
 
@@ -38,7 +38,7 @@ model Board {
   updatedAt DateTime @updatedAt
 
   name    String
-  owner   Account  @relation(fields: [ownerId], references: [id])
+  owner   Account  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId String
   columns Column[]
   items   Item[]

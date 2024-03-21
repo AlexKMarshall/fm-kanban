@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
-import { expect, test } from '@playwright/test'
+
+import { expect, test } from '../playwright-utils'
 
 type User = {
   email: string

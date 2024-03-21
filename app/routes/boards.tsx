@@ -20,7 +20,7 @@ import {
 import { ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { z } from 'zod'
 
-import { requireAuthCookie } from '~/auth'
+import { requireAuthCookie } from '~/auth-old'
 import { prisma } from '~/db/prisma.server'
 import { Button, IconButton } from '~/ui/button'
 import { FieldError } from '~/ui/field-error'

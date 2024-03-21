@@ -7,7 +7,7 @@ import {
 } from '@remix-run/react'
 import { z } from 'zod'
 
-import { requireAuthCookie } from '~/auth'
+import { requireAuthCookie } from '~/auth-old'
 import { prisma } from '~/db/prisma.server'
 
 const ROUTE_ID = 'routes/boards.$id'
