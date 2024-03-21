@@ -1,0 +1,30 @@
+{
+  "name": "@fm-kanban/database",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push --skip-generate",
+    "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
+    "format": "prettier --ignore-path .gitignore \"**/*.{cjs,mjs,js,jsx,ts,tsx,json,md}\" --check",
+    "typecheck": "tsc",
+    "knip": "knip"
+  },
+  "dependencies": {
+    "@prisma/client": "5.11.0"
+  },
+  "devDependencies": {
+    "@fm-kanban/tsconfig": "workspace:*",
+    "@types/node": "20.11.30",
+    "@typescript-eslint/eslint-plugin": "7.3.1",
+    "@typescript-eslint/parser": "7.3.1",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-import-resolver-typescript": "3.6.1",
+    "eslint-plugin-import": "2.29.1",
+    "knip": "5.1.5",
+    "prettier": "3.2.5",
+    "prisma": "5.11.0",
+    "typescript": "5.4.3"
+  }
+}
