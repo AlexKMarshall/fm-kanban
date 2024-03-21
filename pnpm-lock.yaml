@@ -21,7 +21,7 @@ importers:
   apps/e2e-test:
     devDependencies:
       '@faker-js/faker':
-        specifier: ^8.4.1
+        specifier: 8.4.1
         version: 8.4.1
       '@fm-kanban/tsconfig':
         specifier: workspace:*
@@ -54,8 +54,8 @@ importers:
         specifier: 2.29.1
         version: 2.29.1(@typescript-eslint/parser@7.3.1)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
       knip:
-        specifier: 5.1.5
-        version: 5.1.5(@types/node@20.11.30)(typescript@5.4.3)
+        specifier: 5.1.6
+        version: 5.1.6(@types/node@20.11.30)(typescript@5.4.3)
       lint-staged:
         specifier: 15.2.2
         version: 15.2.2
@@ -163,8 +163,8 @@ importers:
         specifier: 4.6.0
         version: 4.6.0(eslint@8.57.0)
       knip:
-        specifier: 5.1.5
-        version: 5.1.5(@types/node@20.11.30)(typescript@5.4.3)
+        specifier: 5.1.6
+        version: 5.1.6(@types/node@20.11.30)(typescript@5.4.3)
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -4730,6 +4730,43 @@ packages:
 
   /knip@5.1.5(@types/node@20.11.30)(typescript@5.4.3):
     resolution: {integrity: sha512-uc5tOc70L4v+4QeeLVXAEwQJ1cxTnR91I5YhWpXurSb4lXbqiRibiAAm4y7JQsrtgPLhRf4FYWQJRsB45MdmKA==}
+    engines: {node: '>=18.6.0'}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>=18'
+      typescript: '>=5.0.4'
+    dependencies:
+      '@ericcornelissen/bash-parser': 0.5.2
+      '@nodelib/fs.walk': 2.0.0
+      '@npmcli/map-workspaces': 3.0.4
+      '@npmcli/package-json': 5.0.0
+      '@pnpm/logger': 5.0.0
+      '@pnpm/workspace.pkgs-graph': 2.0.15(@pnpm/logger@5.0.0)
+      '@snyk/github-codeowners': 1.1.0
+      '@types/node': 20.11.30
+      '@types/picomatch': 2.3.3
+      easy-table: 1.2.0
+      fast-glob: 3.3.2
+      jiti: 1.21.0
+      js-yaml: 4.1.0
+      micromatch: 4.0.5
+      minimist: 1.2.8
+      picocolors: 1.0.0
+      picomatch: 4.0.1
+      pretty-ms: 9.0.0
+      smol-toml: 1.1.4
+      strip-json-comments: 5.0.1
+      summary: 2.1.0
+      typescript: 5.4.3
+      zod: 3.22.4
+      zod-validation-error: 3.0.3(zod@3.22.4)
+    transitivePeerDependencies:
+      - bluebird
+      - domexception
+    dev: true
+
+  /knip@5.1.6(@types/node@20.11.30)(typescript@5.4.3):
+    resolution: {integrity: sha512-lDQu1tKqk3FSXdgOBln3DAokInl6oPw7otZ970F1uIcWLx0AO2OgIs92bZ1/IZKkZx4qymfB1HgEZmW809jR/g==}
     engines: {node: '>=18.6.0'}
     hasBin: true
     peerDependencies:
