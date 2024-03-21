@@ -1,12 +1,7 @@
+import 'dotenv/config'
 import { defineConfig, devices } from '@playwright/test'
 
 const PORT = process.env.CI ? 3000 : 5173
-
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// require('dotenv').config();
 
 /**
  * See https://playwright.dev/docs/test-configuration.

@@ -70,12 +70,18 @@ devDependencies:
   '@types/react-dom':
     specifier: 18.2.22
     version: 18.2.22
+  '@types/set-cookie-parser':
+    specifier: ^2.4.7
+    version: 2.4.7
   '@typescript-eslint/eslint-plugin':
     specifier: 7.3.1
     version: 7.3.1(@typescript-eslint/parser@7.3.1)(eslint@8.57.0)(typescript@5.4.3)
   '@typescript-eslint/parser':
     specifier: 7.3.1
     version: 7.3.1(eslint@8.57.0)(typescript@5.4.3)
+  dotenv:
+    specifier: ^16.4.5
+    version: 16.4.5
   eslint:
     specifier: 8.57.0
     version: 8.57.0
@@ -115,12 +121,18 @@ devDependencies:
   prisma:
     specifier: 5.11.0
     version: 5.11.0
+  set-cookie-parser:
+    specifier: ^2.6.0
+    version: 2.6.0
   tailwindcss:
     specifier: 3.4.1
     version: 3.4.1
   turbo:
     specifier: 1.12.5
     version: 1.12.5
+  type-fest:
+    specifier: ^4.13.1
+    version: 4.13.1
   typescript:
     specifier: 5.4.3
     version: 5.4.3
@@ -2025,6 +2037,12 @@ packages:
 
   /@types/semver@7.5.8:
     resolution: {integrity: sha512-I8EUhyrgfLrcTkzV3TSsGyl1tSuPrEDzr0yd5m90UgNxQkyDXULk3b6MlQqTCpZpNtWe1K0hzclnZkTcLBe2UQ==}
+    dev: true
+
+  /@types/set-cookie-parser@2.4.7:
+    resolution: {integrity: sha512-+ge/loa0oTozxip6zmhRIk8Z/boU51wl9Q6QdLZcokIGMzY5lFXYy/x7Htj2HTC6/KZP1hUbZ1ekx8DYXICvWg==}
+    dependencies:
+      '@types/node': 20.11.30
     dev: true
 
   /@types/unist@2.0.10:
@@ -7372,6 +7390,11 @@ packages:
   /type-fest@3.13.1:
     resolution: {integrity: sha512-tLq3bSNx+xSpwvAJnzrK0Ep5CLNWjvFTOp71URMaAEWBfRb9nnJiBoUe0tF8bI4ZFO3omgBR6NvnbzVUT3Ly4g==}
     engines: {node: '>=14.16'}
+    dev: true
+
+  /type-fest@4.13.1:
+    resolution: {integrity: sha512-ASMgM+Vf2cLwDMt1KXSkMUDSYCxtckDJs8zsaVF/mYteIsiARKCVtyXtcK38mIKbLTctZP8v6GMqdNaeI3fo7g==}
+    engines: {node: '>=16'}
     dev: true
 
   /type-is@1.6.18:
