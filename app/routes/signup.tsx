@@ -4,12 +4,8 @@ import { ActionFunctionArgs, json, redirect } from '@remix-run/node'
 import { Form, Link, useActionData, useNavigation } from '@remix-run/react'
 import { z } from 'zod'
 
-import {
-  getNewSalt,
-  hashPassword,
-  redirectIfLoggedInLoader,
-  setAuthOnResponse,
-} from '~/auth'
+import { getNewSalt, hashPassword } from '~/auth'
+import { redirectIfLoggedInLoader, setAuthOnResponse } from '~/auth-old'
 import { prisma } from '~/db/prisma.server'
 import { FieldError } from '~/ui/field-error'
 import { Input } from '~/ui/input'
