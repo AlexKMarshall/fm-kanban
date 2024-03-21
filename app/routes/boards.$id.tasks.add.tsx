@@ -12,7 +12,7 @@ import { useEffect, useRef } from 'react'
 import invariant from 'tiny-invariant'
 import { z } from 'zod'
 
-import { requireAuthCookie } from '~/auth-old'
+import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 import { Button } from '~/ui/button'
 import { FieldError } from '~/ui/field-error'

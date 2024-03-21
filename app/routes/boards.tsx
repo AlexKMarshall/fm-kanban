@@ -20,7 +20,7 @@ import {
 import { ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { z } from 'zod'
 
-import { requireAuthCookie } from '~/auth-old'
+import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 import { Button, IconButton } from '~/ui/button'
 import { FieldError } from '~/ui/field-error'
@@ -195,6 +195,7 @@ export default function Home() {
             method="post"
             {...getFormProps(form)}
             className="flex flex-col gap-6"
+            aria-labelledby="create-board-dialog-title"
           >
             {/* We need this button first in the form to be the default onEnter submission */}
             <Button
@@ -228,6 +229,7 @@ export default function Home() {
                   <li key={column.key} className="flex flex-col gap-2">
                     <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
                       <ColumnInput
+                        aria-label="Column name"
                         {...getInputProps(column, { type: 'text' })}
                         className="w-0 flex-1"
                       />
