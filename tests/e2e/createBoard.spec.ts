@@ -77,10 +77,11 @@ test('board name is required', async ({ page, login }) => {
     .click()
 
   const nameField = createBoardForm.getByRole('textbox', { name: /^name/i })
-  await expect(nameField).toHaveAttribute('aria-invalid', 'true')
+  await expect(nameField).toBeAriaInvalid()
   const describedById = await nameField.getAttribute('aria-describedby')
   if (!describedById) throw new Error('aria-describedby is not set')
-  const errorMessage = page.locator(`#${describedById}`)
+  const escapedDescribedById = describedById.replace(/:/g, '\\:')
+  const errorMessage = page.locator(`#${escapedDescribedById}`)
   await expect(errorMessage).toBeVisible()
   await expect(errorMessage).toHaveText("Can't be empty")
 })

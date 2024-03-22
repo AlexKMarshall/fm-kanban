@@ -1,8 +1,10 @@
 /* eslint-disable no-empty-pattern */
 
-import { test as base } from '@playwright/test'
+import { test as base, expect as baseExpect } from '@playwright/test'
+import type { Locator } from '@playwright/test'
 import * as setCookieParser from 'set-cookie-parser'
 import { PartialDeep } from 'type-fest'
+import { z } from 'zod'
 
 import { authCookie, getNewSalt, hashPassword } from '~/auth'
 import { prisma } from '~/db/prisma.server'
@@ -15,6 +17,16 @@ type Account = {
   email: string
   password: string
 }
+
+const matcherReturnTypeSchema = z.object({
+  message: z.function().returns(z.string()),
+  pass: z.boolean(),
+  name: z.string().optional(),
+  expected: z.unknown().optional(),
+  actual: z.unknown().optional(),
+  log: z.array(z.string()).optional(),
+})
+type MatcherReturnType = z.infer<typeof matcherReturnTypeSchema>
 
 export const test = base.extend<{
   signUp: (options?: Partial<Account>) => Promise<Account>
@@ -91,4 +103,35 @@ export const test = base.extend<{
   },
 })
 
-export const { expect } = test
+export const expect = baseExpect.extend({
+  async toBeAriaInvalid(locator: Locator, options?: { timeout?: number }) {
+    const assertionName = 'toBeAriaInvalid'
+    let pass: boolean
+    let matcherResult: MatcherReturnType | null = null
+
+    try {
+      await baseExpect(locator).toHaveAttribute('aria-invalid', 'true', options)
+      pass = true
+    } catch (error) {
+      const errorResult = z
+        .object({ matcherResult: matcherReturnTypeSchema })
+        .safeParse(error)
+      if (!errorResult.success) throw error
+
+      matcherResult = errorResult.data.matcherResult
+      pass = false
+    }
+
+    const message = pass
+      ? () => 'Element is aria-invalid'
+      : () => 'Element is not aria-invalid'
+
+    return {
+      message,
+      pass,
+      name: assertionName,
+      expected: 'true',
+      actual: matcherResult?.actual,
+    }
+  },
+})
