@@ -39,7 +39,6 @@ export const test = base.extend<{
         },
       })
       accountId = savedAccount.id
-      console.log('signed up accountID', accountId)
       return { email, password, id: accountId }
     })
     await prisma.account.delete({
@@ -61,8 +60,6 @@ export const test = base.extend<{
       await page
         .context()
         .addCookies([{ ...cookieConfig, domain: 'localhost' }])
-
-      console.log('logged in accountID', id)
 
       return { id, email }
     })
@@ -89,8 +86,6 @@ export const test = base.extend<{
           },
         },
       })
-
-      console.log('created board', savedBoard.name)
 
       return savedBoard
     })
