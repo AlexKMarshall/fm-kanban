@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDotEnv": ["**/.env"],
   "pipeline": {
     "dev": {
       "dependsOn": ["db:generate"],
@@ -17,7 +18,9 @@
       "dependsOn": ["db:generate"]
     },
     "knip": {},
-    "lint": {},
+    "lint": {
+      "env": ["CI"]
+    },
     "format": {},
     "db:generate": {
       "cache": false

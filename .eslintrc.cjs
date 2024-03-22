@@ -23,6 +23,11 @@ module.exports = {
   // Base config
   extends: ['eslint:recommended', 'prettier'],
 
+  rules: {
+    // warn on console logs, but not console errors or warnings
+    'no-console': ['warn', { allow: ['error', 'warn'] }],
+  },
+
   overrides: [
     // React
     {

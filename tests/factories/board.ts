@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { PartialDeep } from 'type-fest'
-type Board = {
+
+export type Board = {
   name: string
   columns: Array<Column>
 }

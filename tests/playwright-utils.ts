@@ -2,11 +2,13 @@
 
 import { test as base } from '@playwright/test'
 import * as setCookieParser from 'set-cookie-parser'
+import { PartialDeep } from 'type-fest'
 
 import { authCookie, getNewSalt, hashPassword } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 
 import { makeAccount } from './factories/account'
+import { Board, makeBoard } from './factories/board'
 
 type Account = {
   id: string
@@ -17,6 +19,7 @@ type Account = {
 export const test = base.extend<{
   signUp: (options?: Partial<Account>) => Promise<Account>
   login: (options?: Partial<Account>) => Promise<Omit<Account, 'password'>>
+  createBoard: (options?: PartialDeep<Board>) => Promise<Board>
 }>({
   signUp: async ({}, use) => {
     let accountId = ''
@@ -59,6 +62,31 @@ export const test = base.extend<{
         .addCookies([{ ...cookieConfig, domain: 'localhost' }])
 
       return { id, email }
+    })
+  },
+
+  createBoard: async ({ login }, use) => {
+    await use(async (options) => {
+      const { id: accountId } = await login()
+      const board = makeBoard(options)
+
+      const savedBoard = await prisma.board.create({
+        select: { name: true, columns: { select: { name: true } } },
+        data: {
+          name: board.name,
+          owner: {
+            connect: {
+              id: accountId,
+            },
+          },
+          columns: {
+            create: board.columns.map(({ name }) => ({
+              name,
+            })),
+          },
+        },
+      })
+      return savedBoard
     })
   },
 })

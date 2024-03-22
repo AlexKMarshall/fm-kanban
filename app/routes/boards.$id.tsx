@@ -70,7 +70,8 @@ export default function Board() {
                       key={item.id}
                       className="rounded-lg bg-white px-4 py-6 shadow"
                     >
-                      {item.title}
+                      <h3>{item.title}</h3>
+                      <p>{item.description}</p>
                     </li>
                   ))}
                 </ul>
@@ -93,9 +94,6 @@ export default function Board() {
           </p>
         </div>
       )}
-      {board.items.map((item) => (
-        <p key={item.id}>{item.title}</p>
-      ))}
     </div>
   )
 }
