@@ -9,8 +9,8 @@ dependencies:
     specifier: 1.0.5
     version: 1.0.5(react@18.2.0)
   '@conform-to/zod':
-    specifier: 1.0.4
-    version: 1.0.4(zod@3.22.4)
+    specifier: 1.0.5
+    version: 1.0.5(zod@3.22.4)
   '@prisma/client':
     specifier: 5.11.0
     version: 5.11.0(prisma@5.11.0)
@@ -491,10 +491,6 @@ packages:
       to-fast-properties: 2.0.0
     dev: true
 
-  /@conform-to/dom@1.0.4:
-    resolution: {integrity: sha512-XT5RxFvNxZZ9LAljslVDfic8pG47j6Kh0JNgBMqwOiaURKZXKRD9L0PPAmsMS8JOYmP6yI42eqfLbRPPoufhAQ==}
-    dev: false
-
   /@conform-to/dom@1.0.5:
     resolution: {integrity: sha512-d+85Z8w5z8gO5mtHGKP5JORHLmcgo2bTmdzRk8lhqUkye9hyM2nt801wE6C6U9zq/s7rnlX7kN5x0A6QBhvk3A==}
     dev: false
@@ -508,12 +504,12 @@ packages:
       react: 18.2.0
     dev: false
 
-  /@conform-to/zod@1.0.4(zod@3.22.4):
-    resolution: {integrity: sha512-CXKzrkmN118fp0VYlzCesKa8JODB5P/K8/Jnio+yREdqQB2EjDAz39IJUa1fjBoEVjvAGfBetj/2d97f4LlSnQ==}
+  /@conform-to/zod@1.0.5(zod@3.22.4):
+    resolution: {integrity: sha512-rtz+gsRecCbY4hPC7AfBEknFWpvSMGYrQ+0AKH+jB3lzpxz/2ib5LSFLGTXg4/FVCBOhbgOxy/zmYixaf6Q1xQ==}
     peerDependencies:
       zod: ^3.21.0
     dependencies:
-      '@conform-to/dom': 1.0.4
+      '@conform-to/dom': 1.0.5
       zod: 3.22.4
     dev: false
 
