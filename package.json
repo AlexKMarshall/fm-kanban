@@ -11,7 +11,7 @@
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc",
     "knip": "knip",
-    "prepare": "husky && husky install",
+    "prepare": "husky",
     "lint-staged": "lint-staged",
     "db:generate": "prisma generate",
     "db:push": "prisma db push --skip-generate",

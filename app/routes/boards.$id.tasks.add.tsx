@@ -127,6 +127,7 @@ export default function Board() {
           method="post"
           {...getFormProps(form)}
           className="flex flex-col gap-6"
+          aria-labelledby="create-task-modal-title"
         >
           {/* We need this button first in the form to be the default onEnter submission */}
           <Button
