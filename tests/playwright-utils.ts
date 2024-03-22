@@ -86,7 +86,7 @@ export const test = base.extend<{
           },
         },
       })
-
+      console.log('testing')
       return savedBoard
     })
   },
