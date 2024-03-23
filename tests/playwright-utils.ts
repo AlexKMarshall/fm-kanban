@@ -18,16 +18,6 @@ type Account = {
   password: string
 }
 
-const matcherReturnTypeSchema = z.object({
-  message: z.function().returns(z.string()),
-  pass: z.boolean(),
-  name: z.string().optional(),
-  expected: z.unknown().optional(),
-  actual: z.unknown().optional(),
-  log: z.array(z.string()).optional(),
-})
-type MatcherReturnType = z.infer<typeof matcherReturnTypeSchema>
-
 export const test = base.extend<{
   signUp: (options?: Partial<Account>) => Promise<Account>
   login: (options?: Partial<Account>) => Promise<Omit<Account, 'password'>>
@@ -103,6 +93,20 @@ export const test = base.extend<{
   },
 })
 
+const matcherReturnTypeSchema = z.object({
+  message: z.function().returns(z.string()),
+  pass: z.boolean(),
+  name: z.string().optional(),
+  expected: z.unknown().optional(),
+  actual: z.unknown().optional(),
+  log: z.array(z.string()).optional(),
+})
+type MatcherReturnType = z.infer<typeof matcherReturnTypeSchema>
+
+const matcherErrorSchema = z.object({
+  matcherResult: matcherReturnTypeSchema,
+})
+
 export const expect = baseExpect.extend({
   async toBeAriaInvalid(locator: Locator, options?: { timeout?: number }) {
     const assertionName = 'toBeAriaInvalid'
@@ -113,9 +117,7 @@ export const expect = baseExpect.extend({
       await baseExpect(locator).toHaveAttribute('aria-invalid', 'true', options)
       pass = true
     } catch (error) {
-      const errorResult = z
-        .object({ matcherResult: matcherReturnTypeSchema })
-        .safeParse(error)
+      const errorResult = matcherErrorSchema.safeParse(error)
       if (!errorResult.success) throw error
 
       matcherResult = errorResult.data.matcherResult
@@ -131,6 +133,46 @@ export const expect = baseExpect.extend({
       pass,
       name: assertionName,
       expected: 'true',
+      actual: matcherResult?.actual,
+    }
+  },
+  async toBeDescribedBy(
+    locator: Locator,
+    expected: string,
+    options?: { timeout?: number },
+  ) {
+    const assertionName = 'toBeDescribedBy'
+    let pass: boolean
+    let matcherResult: MatcherReturnType | null = null
+
+    try {
+      await baseExpect(locator).toHaveAttribute('aria-describedby', options)
+      const describedById = await locator.getAttribute('aria-describedby')
+      // The assertion above means we shouldn't ever throw here
+      if (!describedById) throw new Error('aria-describedby is not set')
+      const escapedDescribedById = describedById.replace(/:/g, '\\:')
+      const errorMessage = locator.page().locator(`#${escapedDescribedById}`)
+      await baseExpect(errorMessage).toHaveText(expected, options)
+      await baseExpect(errorMessage).toBeVisible(options)
+
+      pass = true
+    } catch (error) {
+      const errorResult = matcherErrorSchema.safeParse(error)
+      if (!errorResult.success) throw error
+
+      matcherResult = errorResult.data.matcherResult
+      pass = false
+    }
+
+    const message = pass
+      ? () => `Element is described by ${expected}`
+      : () => `Element is not described by ${expected}`
+
+    return {
+      message,
+      pass,
+      name: assertionName,
+      expected,
       actual: matcherResult?.actual,
     }
   },

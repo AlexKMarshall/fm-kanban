@@ -219,7 +219,6 @@ export default function Home() {
               <Input
                 {...getInputProps(fields.name, { type: 'text' })}
                 placeholder="e.g. Web Design"
-                aria-invalid={false}
                 autoComplete="off"
               />
             </div>
