@@ -62,3 +62,21 @@ test('create board with no columns', async ({ page, login }) => {
     page.getByRole('heading', { name: boardWithoutColumns.name }),
   ).toBeVisible()
 })
+
+test('board name is required', async ({ page, login }) => {
+  await login()
+
+  await page.goto('/')
+  await page.getByRole('button', { name: /create new board/i }).click()
+  const createBoardForm = page.getByRole('form').filter({
+    has: page.getByRole('button', { name: /create new board/i }),
+  })
+
+  await createBoardForm
+    .getByRole('button', { name: /create new board/i })
+    .click()
+
+  const nameField = createBoardForm.getByRole('textbox', { name: /^name/i })
+  await expect(nameField).toBeAriaInvalid()
+  await expect(nameField).toBeDescribedBy("Can't be empty")
+})

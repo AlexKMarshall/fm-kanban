@@ -1,8 +1,10 @@
 /* eslint-disable no-empty-pattern */
 
-import { test as base } from '@playwright/test'
+import { test as base, expect as baseExpect } from '@playwright/test'
+import type { Locator } from '@playwright/test'
 import * as setCookieParser from 'set-cookie-parser'
 import { PartialDeep } from 'type-fest'
+import { z } from 'zod'
 
 import { authCookie, getNewSalt, hashPassword } from '~/auth'
 import { prisma } from '~/db/prisma.server'
@@ -91,4 +93,87 @@ export const test = base.extend<{
   },
 })
 
-export const { expect } = test
+const matcherReturnTypeSchema = z.object({
+  message: z.function().returns(z.string()),
+  pass: z.boolean(),
+  name: z.string().optional(),
+  expected: z.unknown().optional(),
+  actual: z.unknown().optional(),
+  log: z.array(z.string()).optional(),
+})
+type MatcherReturnType = z.infer<typeof matcherReturnTypeSchema>
+
+const matcherErrorSchema = z.object({
+  matcherResult: matcherReturnTypeSchema,
+})
+
+export const expect = baseExpect.extend({
+  async toBeAriaInvalid(locator: Locator, options?: { timeout?: number }) {
+    const assertionName = 'toBeAriaInvalid'
+    let pass: boolean
+    let matcherResult: MatcherReturnType | null = null
+
+    try {
+      await baseExpect(locator).toHaveAttribute('aria-invalid', 'true', options)
+      pass = true
+    } catch (error) {
+      const errorResult = matcherErrorSchema.safeParse(error)
+      if (!errorResult.success) throw error
+
+      matcherResult = errorResult.data.matcherResult
+      pass = false
+    }
+
+    const message = pass
+      ? () => 'Element is aria-invalid'
+      : () => 'Element is not aria-invalid'
+
+    return {
+      message,
+      pass,
+      name: assertionName,
+      expected: 'true',
+      actual: matcherResult?.actual,
+    }
+  },
+  async toBeDescribedBy(
+    locator: Locator,
+    expected: string,
+    options?: { timeout?: number },
+  ) {
+    const assertionName = 'toBeDescribedBy'
+    let pass: boolean
+    let matcherResult: MatcherReturnType | null = null
+
+    try {
+      await baseExpect(locator).toHaveAttribute('aria-describedby', options)
+      const describedById = await locator.getAttribute('aria-describedby')
+      // The assertion above means we shouldn't ever throw here
+      if (!describedById) throw new Error('aria-describedby is not set')
+      const escapedDescribedById = describedById.replace(/:/g, '\\:')
+      const errorMessage = locator.page().locator(`#${escapedDescribedById}`)
+      await baseExpect(errorMessage).toHaveText(expected, options)
+      await baseExpect(errorMessage).toBeVisible(options)
+
+      pass = true
+    } catch (error) {
+      const errorResult = matcherErrorSchema.safeParse(error)
+      if (!errorResult.success) throw error
+
+      matcherResult = errorResult.data.matcherResult
+      pass = false
+    }
+
+    const message = pass
+      ? () => `Element is described by ${expected}`
+      : () => `Element is not described by ${expected}`
+
+    return {
+      message,
+      pass,
+      name: assertionName,
+      expected,
+      actual: matcherResult?.actual,
+    }
+  },
+})
