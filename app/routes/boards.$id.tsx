@@ -38,9 +38,9 @@ export function useBoardLoaderData() {
 export default function Board() {
   const { board } = useLoaderData<typeof loader>()
 
-  const columnsWithItems = board.columns.map((column) => ({
+  const columnsWithTasks = board.columns.map((column) => ({
     ...column,
-    items: board.items.filter((item) => item.columnId === column.id),
+    tasks: board.tasks.filter((task) => task.columnId === column.id),
   }))
 
   return (
@@ -56,24 +56,24 @@ export default function Board() {
         </Link>
         <Outlet />
       </div>
-      {columnsWithItems.length ? (
+      {columnsWithTasks.length ? (
         <ul className="flex flex-grow gap-6 overflow-auto px-4 py-6 *:shrink-0 *:grow-0 *:basis-72 sm:p-6">
-          {columnsWithItems.map((column) => (
+          {columnsWithTasks.map((column) => (
             <li key={column.id} className="flex flex-col gap-6">
               <h2 className="text-xs font-bold uppercase tracking-widest">
                 {column.name}
               </h2>
-              {column.items.length ? (
+              {column.tasks.length ? (
                 <ul className="flex flex-col gap-5">
-                  {column.items.map((item) => (
+                  {column.tasks.map((task) => (
                     <li
-                      key={item.id}
+                      key={task.id}
                       className="rounded-lg bg-white px-4 py-6 shadow"
                     >
                       <h3>
-                        <Link to={`tasks/${item.id}`}>{item.title}</Link>
+                        <Link to={`tasks/${task.id}`}>{task.title}</Link>
                       </h3>
-                      <p>{item.description}</p>
+                      <p>{task.description}</p>
                     </li>
                   ))}
                 </ul>
@@ -109,7 +109,7 @@ function getBoard({ id, accountId }: { id: string; accountId: string }) {
       columns: {
         select: { id: true, name: true },
       },
-      items: {
+      tasks: {
         select: { id: true, title: true, description: true, columnId: true },
       },
     },
