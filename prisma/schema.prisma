@@ -41,7 +41,7 @@ model Board {
   owner   Account  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId String
   columns Column[]
-  items   Item[]
+  tasks   Task[]
 
   @@unique([name, ownerId])
 }
@@ -54,13 +54,16 @@ model Column {
   name    String
   Board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
   boardId String
-  Item    Item[]
+  Task    Task[]
 
   @@unique([name, boardId])
 }
 
-model Item {
-  id          String  @id @default(cuid())
+model Task {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   title       String
   description String?
 

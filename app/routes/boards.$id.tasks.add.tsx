@@ -64,7 +64,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   const { title, description, columnId } = submission.value
 
-  await prisma.item.create({
+  await prisma.task.create({
     data: {
       title,
       description,

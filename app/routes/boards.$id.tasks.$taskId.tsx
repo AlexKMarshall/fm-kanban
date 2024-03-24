@@ -17,23 +17,23 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const accountId = await requireAuthCookie(request)
   const { id: boardId, taskId } = paramsSchema.parse(params)
 
-  const [item, columns] = await Promise.all([
+  const [task, columns] = await Promise.all([
     getTask({ taskId, accountId }),
     getColumns({ accountId, boardId }),
   ])
 
-  if (!item) {
-    throw new Response('Item not found', {
+  if (!task) {
+    throw new Response('Task not found', {
       status: 404,
       statusText: 'Not found',
     })
   }
 
-  return json({ item, columns })
+  return json({ task, columns })
 }
 
 export default function Task() {
-  const { item, columns } = useLoaderData<typeof loader>()
+  const { task, columns } = useLoaderData<typeof loader>()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const itemTitleId = useId()
 
@@ -58,14 +58,14 @@ export default function Task() {
     >
       <div className="flex flex-col gap-6 rounded-md bg-white p-6 sm:p-8">
         <h2 id={itemTitleId} className="text-lg font-bold">
-          {item.title}
+          {task.title}
         </h2>
-        <p className="text-sm text-gray-500">{item.description}</p>
+        <p className="text-sm text-gray-500">{task.description}</p>
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap justify-between gap-2">
             <Label htmlFor="column">Current Status</Label>
           </div>
-          <select defaultValue={item.Column.id}>
+          <select defaultValue={task.Column.id}>
             {columns.map((column) => (
               <option key={column.id} value={column.id}>
                 {column.name}
@@ -79,7 +79,7 @@ export default function Task() {
 }
 
 function getTask({ taskId, accountId }: { taskId: string; accountId: string }) {
-  return prisma.item.findFirst({
+  return prisma.task.findFirst({
     select: {
       id: true,
       title: true,
