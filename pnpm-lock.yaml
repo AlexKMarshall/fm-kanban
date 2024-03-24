@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@conform-to/react':
-    specifier: 1.0.5
-    version: 1.0.5(react@18.2.0)
+    specifier: 1.0.6
+    version: 1.0.6(react@18.2.0)
   '@conform-to/zod':
     specifier: 1.0.5
     version: 1.0.5(zod@3.22.4)
@@ -495,12 +495,16 @@ packages:
     resolution: {integrity: sha512-d+85Z8w5z8gO5mtHGKP5JORHLmcgo2bTmdzRk8lhqUkye9hyM2nt801wE6C6U9zq/s7rnlX7kN5x0A6QBhvk3A==}
     dev: false
 
-  /@conform-to/react@1.0.5(react@18.2.0):
-    resolution: {integrity: sha512-LyhbN0oVoL7xQg8NXoeG7jqH9JCLsI10clQ0iwwdQDMA+W7OFAL70FFYjq7yjHJBrkj7QqcmO5xMV4jfWTvJJw==}
+  /@conform-to/dom@1.0.6:
+    resolution: {integrity: sha512-24teTftuAfcjv+SiaFYb9msjdQA7Kq8Yk9QkMPrkF8LETl80+i5fpCaIG8V91KyTitBeBcc80gg9HuPuuq3dqQ==}
+    dev: false
+
+  /@conform-to/react@1.0.6(react@18.2.0):
+    resolution: {integrity: sha512-GHnUP89tGoikg7HhHP3V9U38BybyijjEV618GZFkqmW5o2jcViWsiLiY9XokJVEVckZ7aj5rZo3u6TfBv0lXlQ==}
     peerDependencies:
       react: '>=18'
     dependencies:
-      '@conform-to/dom': 1.0.5
+      '@conform-to/dom': 1.0.6
       react: 18.2.0
     dev: false
 
