@@ -39,7 +39,18 @@ test('create task', async ({ page, createBoard }) => {
     .getByRole('listitem')
     .filter({ has: page.getByRole('heading', { name: task1.title }) })
   await expect(card1).toBeVisible()
-  await expect(card1).toContainText(task1.description)
+  // View the details of the task
+  await card1.getByRole('link', { name: task1.title }).click()
+  const taskDialog = page.getByRole('dialog', { name: task1.title })
+  await expect(taskDialog).toBeVisible()
+  await expect(taskDialog).toContainText(task1.description)
+  // Ideally we'd also verify that the status select has the correct value
+  // But playwright currently doesn't let you check by the visible text of an option, only its value
+  // And we don't want to check the column id directly as it's an implementation detail
+  // https://github.com/microsoft/playwright/issues/27146
+
+  // Close the dialog
+  await page.keyboard.press('Escape')
 
   // Create second card in second column
   await page.getByRole('link', { name: /add new task/i }).click()
@@ -63,5 +74,10 @@ test('create task', async ({ page, createBoard }) => {
     .getByRole('listitem')
     .filter({ has: page.getByRole('heading', { name: task2.title }) })
   await expect(card2).toBeVisible()
-  await expect(card2).toContainText(task2.description)
+
+  // View the details of the task
+  await card2.getByRole('link', { name: task2.title }).click()
+  const task2Dialog = page.getByRole('dialog', { name: task2.title })
+  await expect(task2Dialog).toBeVisible()
+  await expect(task2Dialog).toContainText(task2.description)
 })
