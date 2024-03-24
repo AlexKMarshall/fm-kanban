@@ -7,7 +7,7 @@ import {
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { ActionFunctionArgs, json, redirect } from '@remix-run/node'
-import { useActionData, useFetcher } from '@remix-run/react'
+import { useActionData, useFetcher, useNavigate } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
 import invariant from 'tiny-invariant'
 import { z } from 'zod'
@@ -106,10 +106,13 @@ export default function Board() {
     createTaskModalRef.current.showModal()
   }, [])
 
+  const navigate = useNavigate()
+
   return (
     /* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */
     /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */
     <dialog
+      onClose={() => navigate(-1)}
       ref={createTaskModalRef}
       className="w-[30rem] max-w-full bg-transparent p-4 backdrop:bg-gray-700/50"
       onClick={(event) => {

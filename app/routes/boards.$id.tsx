@@ -70,7 +70,9 @@ export default function Board() {
                       key={item.id}
                       className="rounded-lg bg-white px-4 py-6 shadow"
                     >
-                      <h3>{item.title}</h3>
+                      <h3>
+                        <Link to={`tasks/${item.id}`}>{item.title}</Link>
+                      </h3>
                       <p>{item.description}</p>
                     </li>
                   ))}
