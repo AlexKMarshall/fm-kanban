@@ -73,7 +73,6 @@ export default function Board() {
                       <h3>
                         <Link to={`tasks/${task.id}`}>{task.title}</Link>
                       </h3>
-                      <p>{task.description}</p>
                       {task.subtasks.length ? (
                         <p className="text-xs font-bold text-gray-500">
                           0 of {task.subtasks.length} subtasks

@@ -205,7 +205,7 @@ export default function Board() {
                 <li key={subtask.key} className="flex flex-col gap-2">
                   <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
                     <Input
-                      aria-label="Subtask name"
+                      aria-label="Subtask title"
                       focusOnMount={index !== 0}
                       {...getInputProps(subtask, { type: 'text' })}
                       className="w-0 flex-1"
@@ -233,7 +233,7 @@ export default function Board() {
               {...form.insert.getButtonProps({ name: fields.subtasks.name })}
               className="bg-indigo-700/10 text-indigo-700"
             >
-              + Add New Column
+              + Add New Subtask
             </Button>
           </fieldset>
           <Button
