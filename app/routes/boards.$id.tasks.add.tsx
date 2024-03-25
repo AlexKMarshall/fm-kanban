@@ -181,23 +181,6 @@ export default function Board() {
               autoComplete="off"
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap justify-between gap-2">
-              <Label htmlFor={fields.columnId.id}>Status</Label>
-              <FieldError
-                id={fields.columnId.errorId}
-                aria-live="polite"
-                errors={fields.columnId.errors}
-              />
-            </div>
-            <select {...getSelectProps(fields.columnId)}>
-              {board.columns.map((column) => (
-                <option key={column.id} value={column.id}>
-                  {column.name}
-                </option>
-              ))}
-            </select>
-          </div>
           <fieldset className="flex flex-col gap-3">
             <Legend>Subtasks</Legend>
             <ul className="flex flex-col gap-3">
@@ -236,6 +219,23 @@ export default function Board() {
               + Add New Subtask
             </Button>
           </fieldset>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap justify-between gap-2">
+              <Label htmlFor={fields.columnId.id}>Status</Label>
+              <FieldError
+                id={fields.columnId.errorId}
+                aria-live="polite"
+                errors={fields.columnId.errors}
+              />
+            </div>
+            <select {...getSelectProps(fields.columnId)}>
+              {board.columns.map((column) => (
+                <option key={column.id} value={column.id}>
+                  {column.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <Button
             type="submit"
             name={INTENTS.createTask.fieldName}

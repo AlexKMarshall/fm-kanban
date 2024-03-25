@@ -61,6 +61,23 @@ export default function Task() {
           {task.title}
         </h2>
         <p className="text-sm text-gray-500">{task.description}</p>
+        {task.subtasks.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            <h3 className="text-xs font-bold text-gray-500">
+              Subtasks (0 of {task.subtasks.length})
+            </h3>
+            <ul className="flex flex-col gap-2">
+              {task.subtasks.map((subtask) => (
+                <li
+                  className="rounded bg-blue-50 p-4 text-xs font-bold"
+                  key={subtask.id}
+                >
+                  {subtask.title}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap justify-between gap-2">
             <Label htmlFor="column">Current Status</Label>
@@ -85,6 +102,7 @@ function getTask({ taskId, accountId }: { taskId: string; accountId: string }) {
       title: true,
       description: true,
       Column: { select: { name: true, id: true } },
+      subtasks: { select: { id: true, title: true } },
     },
     where: {
       id: taskId,
