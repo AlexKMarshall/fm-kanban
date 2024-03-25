@@ -60,7 +60,9 @@ export default function Task() {
         <h2 id={itemTitleId} className="text-lg font-bold">
           {task.title}
         </h2>
-        <p className="text-sm text-gray-500">{task.description}</p>
+        {task.description ? (
+          <p className="text-sm text-gray-500">{task.description}</p>
+        ) : null}
         {task.subtasks.length > 0 ? (
           <div className="flex flex-col gap-4">
             <h3 className="text-xs font-bold text-gray-500">
