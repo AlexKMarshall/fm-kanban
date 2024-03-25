@@ -95,4 +95,12 @@ test('create task', async ({ page, createBoard }) => {
   const task2Dialog = page.getByRole('dialog', { name: task2.title })
   await expect(task2Dialog).toBeVisible()
   await expect(task2Dialog).toContainText(task2.description)
+  await expect(
+    task2Dialog.getByRole('heading', {
+      name: `Subtasks (0 of ${task2.subtasks.length})`,
+    }),
+  ).toBeVisible()
+  for (const subtask of task2.subtasks) {
+    await expect(task2Dialog).toContainText(subtask)
+  }
 })
