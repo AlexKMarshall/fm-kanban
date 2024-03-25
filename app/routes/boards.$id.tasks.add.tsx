@@ -6,6 +6,7 @@ import {
   useForm,
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { Cross2Icon } from '@radix-ui/react-icons'
 import { ActionFunctionArgs, json, redirect } from '@remix-run/node'
 import { useActionData, useFetcher, useNavigate } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
@@ -14,10 +15,10 @@ import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
-import { Button } from '~/ui/button'
+import { Button, IconButton } from '~/ui/button'
 import { FieldError } from '~/ui/field-error'
 import { Input } from '~/ui/input'
-import { Label } from '~/ui/label'
+import { Label, Legend } from '~/ui/label'
 
 import { useBoardLoaderData } from './boards.$id'
 
@@ -30,6 +31,9 @@ const createTaskSchema = z.object({
   description: z.string().optional(),
   // TODO: validate the column id
   columnId: z.string({ required_error: 'Select a status' }),
+  subtasks: z
+    .array(z.string().optional())
+    .transform((subtasks) => subtasks.filter(Boolean)),
 })
 
 const INTENTS = {
@@ -62,7 +66,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return json(submission.reply(), { status: 400 })
   }
 
-  const { title, description, columnId } = submission.value
+  const { title, description, columnId, subtasks } = submission.value
 
   await prisma.task.create({
     data: {
@@ -70,6 +74,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
       description,
       columnId,
       boardId,
+      subtasks: {
+        create: subtasks.map((title) => ({ title })),
+      },
     },
   })
 
@@ -91,6 +98,7 @@ export default function Board() {
       title: '',
       description: '',
       columnId: '',
+      subtasks: [''],
     },
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
@@ -100,6 +108,7 @@ export default function Board() {
       return parseWithZod(formData, { schema: createTaskSchema })
     },
   })
+  const subtasks = fields.subtasks.getFieldList()
 
   useEffect(function openModal() {
     invariant(createTaskModalRef.current, 'createTaskModal ref is not set')
@@ -189,6 +198,44 @@ export default function Board() {
               ))}
             </select>
           </div>
+          <fieldset className="flex flex-col gap-3">
+            <Legend>Subtasks</Legend>
+            <ul className="flex flex-col gap-3">
+              {subtasks.map((subtask, index) => (
+                <li key={subtask.key} className="flex flex-col gap-2">
+                  <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
+                    <Input
+                      aria-label="Subtask name"
+                      focusOnMount={index !== 0}
+                      {...getInputProps(subtask, { type: 'text' })}
+                      className="w-0 flex-1"
+                    />
+                    <IconButton
+                      {...form.remove.getButtonProps({
+                        name: fields.subtasks.name,
+                        index,
+                      })}
+                      aria-label="Remove"
+                      className="self-center"
+                    >
+                      <Cross2Icon aria-hidden />
+                    </IconButton>
+                  </div>
+                  <FieldError
+                    id={subtask.errorId}
+                    aria-live="polite"
+                    errors={subtask.errors}
+                  />
+                </li>
+              ))}
+            </ul>
+            <Button
+              {...form.insert.getButtonProps({ name: fields.subtasks.name })}
+              className="bg-indigo-700/10 text-indigo-700"
+            >
+              + Add New Column
+            </Button>
+          </fieldset>
           <Button
             type="submit"
             name={INTENTS.createTask.fieldName}

@@ -68,12 +68,17 @@ export default function Board() {
                   {column.tasks.map((task) => (
                     <li
                       key={task.id}
-                      className="rounded-lg bg-white px-4 py-6 shadow"
+                      className="flex flex-col gap-2 rounded-lg bg-white px-4 py-6 shadow"
                     >
                       <h3>
                         <Link to={`tasks/${task.id}`}>{task.title}</Link>
                       </h3>
                       <p>{task.description}</p>
+                      {task.subtasks.length ? (
+                        <p className="text-xs font-bold text-gray-500">
+                          0 of {task.subtasks.length} subtasks
+                        </p>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
@@ -110,7 +115,15 @@ function getBoard({ id, accountId }: { id: string; accountId: string }) {
         select: { id: true, name: true },
       },
       tasks: {
-        select: { id: true, title: true, description: true, columnId: true },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          columnId: true,
+          subtasks: {
+            select: { id: true, title: true },
+          },
+        },
       },
     },
   })
