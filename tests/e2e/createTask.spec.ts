@@ -10,6 +10,7 @@ test('create task', async ({ page, createBoard }) => {
   const task2 = {
     title: 'task 2',
     description: 'description 2',
+    subtasks: ['subtask 1', 'subtask 2'],
   }
   const boardWithTwoColumns = await createBoard({ columns: [column1, column2] })
 
@@ -22,7 +23,7 @@ test('create task', async ({ page, createBoard }) => {
   const addNewTaskForm = page.getByRole('form', { name: /add new task/i })
 
   await addNewTaskForm
-    .getByRole('textbox', { name: /title/i })
+    .getByRole('textbox', { name: /^title/i })
     .fill(task1.title)
   await addNewTaskForm
     .getByRole('textbox', { name: /description/i })
@@ -56,7 +57,7 @@ test('create task', async ({ page, createBoard }) => {
   await page.getByRole('link', { name: /add new task/i }).click()
 
   await addNewTaskForm
-    .getByRole('textbox', { name: /title/i })
+    .getByRole('textbox', { name: /^title/i })
     .fill(task2.title)
   await addNewTaskForm
     .getByRole('textbox', { name: /description/i })
@@ -64,6 +65,19 @@ test('create task', async ({ page, createBoard }) => {
   await addNewTaskForm
     .getByRole('combobox', { name: /status/i })
     .selectOption(column2.name)
+
+  for (let i = 0; i < task2.subtasks.length; i++) {
+    const subtask = task2.subtasks[i]
+    if (i > 0) {
+      await addNewTaskForm
+        .getByRole('button', { name: /add new subtask/i })
+        .click()
+    }
+    await addNewTaskForm
+      .getByRole('textbox', { name: /subtask title/i })
+      .last()
+      .fill(subtask)
+  }
 
   await addNewTaskForm.getByRole('button', { name: /create task/i }).click()
 
@@ -74,6 +88,7 @@ test('create task', async ({ page, createBoard }) => {
     .getByRole('listitem')
     .filter({ has: page.getByRole('heading', { name: task2.title }) })
   await expect(card2).toBeVisible()
+  await expect(card2).toContainText(`0 of ${task2.subtasks.length} subtasks`)
 
   // View the details of the task
   await card2.getByRole('link', { name: task2.title }).click()

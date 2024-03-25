@@ -17,7 +17,7 @@ import {
   useLocation,
   useNavigation,
 } from '@remix-run/react'
-import { ComponentPropsWithoutRef, useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
@@ -228,7 +228,8 @@ export default function Home() {
                 {columns.map((column, index) => (
                   <li key={column.key} className="flex flex-col gap-2">
                     <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
-                      <ColumnInput
+                      <Input
+                        focusOnMount={index !== 0}
                         aria-label="Column name"
                         {...getInputProps(column, { type: 'text' })}
                         className="w-0 flex-1"
@@ -314,15 +315,6 @@ function BoardsNav({
       </button>
     </nav>
   )
-}
-
-/** An input that autofocuses when it mounts. Ideal for use in a field list */
-function ColumnInput(props: ComponentPropsWithoutRef<typeof Input>) {
-  const ref = useRef<HTMLInputElement>(null)
-  useEffect(() => {
-    ref.current?.focus()
-  }, [])
-  return <Input {...props} ref={ref} />
 }
 
 function createBoard({
