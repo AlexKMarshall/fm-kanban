@@ -32,22 +32,59 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json({ task, columns })
 }
 
-const subtaskActionSchema = z.object({
+const INTENTS = {
+  updateSubtask: {
+    value: 'updateSubtask',
+    fieldName: 'intent',
+  },
+  updateColumn: {
+    value: 'updateColumn',
+    fieldName: 'intent',
+  },
+} as const
+
+const updateSubtaskFormSchema = z.object({
+  intent: z.literal(INTENTS.updateSubtask.value),
   subtaskId: z.string(),
   isCompleted: z.coerce.boolean().default(false),
 })
+const updateColumnFormSchema = z.object({
+  intent: z.literal(INTENTS.updateColumn.value),
+  columnId: z.string(),
+})
 
-export async function action({ request }: ActionFunctionArgs) {
+const actionFormSchema = z.union([
+  updateSubtaskFormSchema,
+  updateColumnFormSchema,
+])
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  const { taskId } = paramsSchema.parse(params)
   const accountId = await requireAuthCookie(request)
   const formData = await request.formData()
-  const parsed = subtaskActionSchema.parse(Object.fromEntries(formData))
+  const parsed = actionFormSchema.parse(Object.fromEntries(formData))
 
-  await prisma.subtask.update({
-    where: { id: parsed.subtaskId, Task: { Board: { ownerId: accountId } } },
-    data: { isCompleted: parsed.isCompleted },
-  })
-
-  return null
+  switch (parsed.intent) {
+    case INTENTS.updateSubtask.value:
+      await prisma.subtask.update({
+        where: {
+          id: parsed.subtaskId,
+          Task: { Board: { ownerId: accountId } },
+        },
+        data: { isCompleted: parsed.isCompleted },
+      })
+      return null
+    case INTENTS.updateColumn.value:
+      await prisma.task.update({
+        where: {
+          id: taskId,
+        },
+        data: {
+          columnId: parsed.columnId,
+        },
+      })
+      return null
+  }
 }
 
 export default function Task() {
@@ -65,6 +102,8 @@ export default function Task() {
     (subtask) => subtask.isCompleted,
   ).length
   const totalSubtaskCount = task.subtasks.length
+
+  const fetcher = useFetcher()
 
   return (
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
@@ -103,18 +142,28 @@ export default function Task() {
             </ul>
           </div>
         ) : null}
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-wrap justify-between gap-2">
-            <Label htmlFor="column">Current Status</Label>
+        <fetcher.Form
+          method="post"
+          onChange={(event) => fetcher.submit(event.currentTarget)}
+        >
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap justify-between gap-2">
+              <Label htmlFor="column">Current Status</Label>
+            </div>
+            <select name="columnId" defaultValue={task.Column.id}>
+              {columns.map((column) => (
+                <option key={column.id} value={column.id}>
+                  {column.name}
+                </option>
+              ))}
+            </select>
           </div>
-          <select defaultValue={task.Column.id}>
-            {columns.map((column) => (
-              <option key={column.id} value={column.id}>
-                {column.name}
-              </option>
-            ))}
-          </select>
-        </div>
+          <input
+            type="hidden"
+            name={INTENTS.updateColumn.fieldName}
+            value={INTENTS.updateColumn.value}
+          />
+        </fetcher.Form>
       </div>
     </dialog>
   )
@@ -151,6 +200,11 @@ function Subtask({
           aria-labelledby={[labelId, titleId].join(' ')}
         />
         <input type="hidden" name="subtaskId" value={subtaskId} />
+        <input
+          type="hidden"
+          name={INTENTS.updateSubtask.fieldName}
+          value={INTENTS.updateSubtask.value}
+        />
       </fetcher.Form>
       <span id={labelId} className="sr-only">
         Complete
