@@ -76,7 +76,12 @@ export default function Board() {
                       </h3>
                       {task.subtasks.length ? (
                         <p className="text-xs font-bold text-gray-500">
-                          0 of {task.subtasks.length} subtasks
+                          {
+                            task.subtasks.filter(
+                              ({ isCompleted }) => isCompleted,
+                            ).length
+                          }{' '}
+                          of {task.subtasks.length} subtasks
                         </p>
                       ) : null}
                     </li>
@@ -121,7 +126,7 @@ function getBoard({ id, accountId }: { id: string; accountId: string }) {
           description: true,
           columnId: true,
           subtasks: {
-            select: { id: true, title: true },
+            select: { id: true, title: true, isCompleted: true },
           },
         },
       },
