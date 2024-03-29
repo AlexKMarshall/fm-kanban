@@ -70,12 +70,11 @@ export default function Task() {
             </h3>
             <ul className="flex flex-col gap-2">
               {task.subtasks.map((subtask) => (
-                <li
-                  className="rounded bg-blue-50 p-4 text-xs font-bold"
+                <Subtask
                   key={subtask.id}
-                >
-                  {subtask.title}
-                </li>
+                  title={subtask.title}
+                  isCompleted={subtask.isCompleted}
+                />
               ))}
             </ul>
           </div>
@@ -97,6 +96,31 @@ export default function Task() {
   )
 }
 
+function Subtask({
+  title,
+  isCompleted,
+}: {
+  title: string
+  isCompleted: boolean
+}) {
+  const id = useId()
+  const labelId = `${id}-label`
+  const titleId = `${id}-title`
+  return (
+    <li className="flex items-center gap-4 rounded bg-blue-50 p-4 text-xs font-bold">
+      <input
+        type="checkbox"
+        defaultChecked={isCompleted}
+        aria-labelledby={[labelId, titleId].join(' ')}
+      />
+      <span id={labelId} className="sr-only">
+        Complete
+      </span>
+      <span id={titleId}>{title}</span>
+    </li>
+  )
+}
+
 function getTask({ taskId, accountId }: { taskId: string; accountId: string }) {
   return prisma.task.findFirst({
     select: {
@@ -104,7 +128,7 @@ function getTask({ taskId, accountId }: { taskId: string; accountId: string }) {
       title: true,
       description: true,
       Column: { select: { name: true, id: true } },
-      subtasks: { select: { id: true, title: true } },
+      subtasks: { select: { id: true, title: true, isCompleted: true } },
     },
     where: {
       id: taskId,
