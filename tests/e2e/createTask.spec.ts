@@ -1,8 +1,10 @@
+import { makeColumn } from 'tests/factories/board'
+
 import { expect, test } from '../playwright-utils'
 
 test('create task', async ({ page, createBoard }) => {
-  const column1 = { name: 'column 1' }
-  const column2 = { name: 'column 2' }
+  const column1 = makeColumn()
+  const column2 = makeColumn()
   const task1 = {
     title: 'task 1',
     description: 'description 1',

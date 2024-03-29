@@ -150,7 +150,7 @@ export default function Task() {
             <div className="flex flex-wrap justify-between gap-2">
               <Label htmlFor="column">Current Status</Label>
             </div>
-            <select name="columnId" defaultValue={task.Column.id}>
+            <select name="columnId" id="column" defaultValue={task.Column.id}>
               {columns.map((column) => (
                 <option key={column.id} value={column.id}>
                   {column.name}
