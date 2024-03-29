@@ -17,7 +17,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="grid min-h-screen">
         <Outlet />
         <ScrollRestoration />
         <Scripts />

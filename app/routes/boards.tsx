@@ -118,7 +118,7 @@ export default function Home() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-[16rem_1fr] md:grid-cols-[19rem_1fr]">
-      <header className="p-8">
+      <header className="overflow-auto p-8 sm:max-h-screen">
         <div className="flex items-start gap-4 text-lg sm:mb-14">
           <Link to="/" aria-label="Kanban home">
             <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
@@ -171,7 +171,7 @@ export default function Home() {
           className="hidden sm:block"
         />
       </header>
-      <main className="flex">
+      <main className="flex sm:max-h-screen sm:overflow-auto">
         <Outlet />
       </main>
       {/* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */}

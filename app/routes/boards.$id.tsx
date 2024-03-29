@@ -9,6 +9,7 @@ import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
+import { ButtonLink } from '~/ui/link'
 
 const ROUTE_ID = 'routes/boards.$id'
 
@@ -47,13 +48,13 @@ export default function Board() {
     <div className="flex flex-grow flex-col border-l border-l-gray-200 bg-gray-50">
       <div className="flex items-center gap-8 border-b border-b-gray-200 bg-white p-4">
         <h1 className="text-xl font-bold">{board.name}</h1>
-        <Link
+        <ButtonLink
           aria-disabled={board.columns.length === 0}
           to="tasks/add"
           className="text-default ml-auto bg-indigo-700 text-white aria-disabled:bg-indigo-300"
         >
           + Add New Task
-        </Link>
+        </ButtonLink>
         <Outlet />
       </div>
       {columnsWithTasks.length ? (

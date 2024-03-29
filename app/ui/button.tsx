@@ -1,18 +1,16 @@
 import { ComponentPropsWithoutRef, forwardRef } from 'react'
 import { tv } from 'tailwind-variants'
 
+export const buttonVariants = tv({
+  base: 'inline-flex items-center justify-center gap-3 rounded-full px-4 py-2 text-sm font-bold leading-relaxed',
+})
+
 export const Button = forwardRef<
   HTMLButtonElement,
   ComponentPropsWithoutRef<'button'>
 >(function Button({ className, ...props }, ref) {
   return (
-    <button
-      {...props}
-      className={tv({
-        base: 'inline-flex items-center justify-center gap-3 rounded-full px-4 py-2 text-sm font-bold leading-relaxed',
-      })({ className })}
-      ref={ref}
-    />
+    <button {...props} className={buttonVariants({ className })} ref={ref} />
   )
 })
 
