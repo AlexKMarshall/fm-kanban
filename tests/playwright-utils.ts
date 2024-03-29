@@ -10,7 +10,7 @@ import { authCookie, getNewSalt, hashPassword } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 
 import { makeAccount } from './factories/account'
-import { Board, makeBoard } from './factories/board'
+import { Board, makeBoard, makeTask } from './factories/board'
 
 type Account = {
   id: string
@@ -74,7 +74,11 @@ function makeCreateBoardFixture({ login }: { login: LoginFixture }) {
     const board = makeBoard(options)
 
     const savedBoard = await prisma.board.create({
-      select: { name: true, columns: { select: { name: true } } },
+      select: {
+        name: true,
+        id: true,
+        columns: { select: { name: true, id: true } },
+      },
       data: {
         name: board.name,
         owner: {
@@ -94,10 +98,50 @@ function makeCreateBoardFixture({ login }: { login: LoginFixture }) {
 }
 type CreateBoardFixture = ReturnType<typeof makeCreateBoardFixture>
 
+function makeCreateTasksFixture() {
+  return async function createTasks(
+    ...options: Array<
+      Parameters<typeof makeTask>[0] & { boardId: string; columnId: string }
+    >
+  ) {
+    return await Promise.all(
+      options.map((taskOption) => {
+        const { boardId, columnId, ...taskData } = taskOption
+        const task = makeTask(taskData)
+
+        return prisma.task.create({
+          data: {
+            title: task.title,
+            description: task.description,
+            subtasks: {
+              create: task.subtasks.map(({ title, isCompleted }) => ({
+                title,
+                isCompleted,
+              })),
+            },
+            Column: {
+              connect: {
+                id: columnId,
+              },
+            },
+            Board: {
+              connect: {
+                id: boardId,
+              },
+            },
+          },
+        })
+      }),
+    )
+  }
+}
+type CreateTasksFixture = ReturnType<typeof makeCreateTasksFixture>
+
 export const test = base.extend<{
   signUp: SignUpFixture
   login: LoginFixture
   createBoard: CreateBoardFixture
+  createTasks: CreateTasksFixture
 }>({
   signUp: async ({}, use) => {
     let accountId = ''
@@ -111,6 +155,9 @@ export const test = base.extend<{
   },
   createBoard: async ({ login }, use) => {
     await use(makeCreateBoardFixture({ login }))
+  },
+  createTasks: async ({}, use) => {
+    await use(makeCreateTasksFixture())
   },
 })
 
