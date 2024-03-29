@@ -87,8 +87,9 @@ function makeCreateBoardFixture({ login }: { login: LoginFixture }) {
           },
         },
         columns: {
-          create: board.columns.map(({ name }) => ({
+          create: board.columns.map(({ name, id }) => ({
             name,
+            id,
           })),
         },
       },

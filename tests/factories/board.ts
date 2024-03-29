@@ -19,11 +19,13 @@ export function makeBoard(overrides?: PartialDeep<Board>) {
 }
 
 type Column = {
+  id: string
   name: string
 }
 
-function makeColumn(overrides?: PartialDeep<Column>) {
+export function makeColumn(overrides?: PartialDeep<Column>) {
   return {
+    id: faker.string.uuid(),
     name: faker.word.adjective(),
     ...overrides,
   }

@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 
-import { makeSubtask, makeTask } from 'tests/factories/board'
+import { makeColumn, makeSubtask, makeTask } from 'tests/factories/board'
 
 import { expect, test } from '../playwright-utils'
 
@@ -52,4 +52,46 @@ test('Complete and uncomplete subtasks', async ({
   await page.keyboard.press('Escape')
 
   await expect(taskCard).toContainText('1 of 3 subtasks')
+})
+
+test('Update task column', async ({ page, createBoard, createTasks }) => {
+  const column1 = makeColumn()
+  const column2 = makeColumn()
+  const board = await createBoard({ columns: [column1, column2] })
+  const task = makeTask()
+  await createTasks({ boardId: board.id, columnId: column1.id, ...task })
+
+  await page.goto('/')
+  await page.getByRole('link', { name: board.name }).click()
+
+  const column1Element = page.getByRole('listitem').filter({
+    has: page.getByRole('heading', { name: column1.name }),
+  })
+  const column2Element = page.getByRole('listitem').filter({
+    has: page.getByRole('heading', { name: column2.name }),
+  })
+  const taskCardInColumn1 = column1Element.getByRole('listitem').filter({
+    has: page.getByRole('heading', { name: task.title }),
+  })
+  const taskCardInColumn2 = column2Element.getByRole('listitem').filter({
+    has: page.getByRole('heading', { name: task.title }),
+  })
+
+  await expect(taskCardInColumn1).toBeVisible()
+  await expect(taskCardInColumn2).toBeHidden()
+
+  // Open card
+  await taskCardInColumn1.getByRole('link', { name: task.title }).click()
+  const taskDialog = page.getByRole('dialog', { name: task.title })
+  await expect(taskDialog).toBeVisible()
+
+  await page
+    .getByRole('combobox', { name: 'Current Status' })
+    .selectOption(column2.name)
+  // Close card
+  await page.keyboard.press('Escape')
+  await expect(taskDialog).toBeHidden()
+
+  await expect(taskCardInColumn1).toBeHidden()
+  await expect(taskCardInColumn2).toBeVisible()
 })
