@@ -136,7 +136,7 @@ function Subtask({
   const fetcher = useFetcher()
 
   return (
-    <li className="flex items-center gap-4 rounded bg-blue-50 p-4 text-xs font-bold">
+    <li className="has-[:checked] flex items-center gap-4 rounded bg-blue-50 p-4 text-xs font-bold has-[:checked]:text-gray-500 has-[:checked]:line-through">
       <fetcher.Form
         method="post"
         onChange={(event) => {
