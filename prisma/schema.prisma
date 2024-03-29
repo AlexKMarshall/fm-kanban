@@ -80,7 +80,8 @@ model Subtask {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  title String
+  title       String
+  isCompleted Boolean @default(false)
 
   Task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
   taskId String

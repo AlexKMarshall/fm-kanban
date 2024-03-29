@@ -1,7 +1,7 @@
 /* eslint-disable no-empty-pattern */
 
 import { test as base, expect as baseExpect } from '@playwright/test'
-import type { Locator } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import * as setCookieParser from 'set-cookie-parser'
 import { PartialDeep } from 'type-fest'
 import { z } from 'zod'
@@ -10,7 +10,7 @@ import { authCookie, getNewSalt, hashPassword } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 
 import { makeAccount } from './factories/account'
-import { Board, makeBoard } from './factories/board'
+import { Board, makeBoard, makeTask } from './factories/board'
 
 type Account = {
   id: string
@@ -18,78 +18,146 @@ type Account = {
   password: string
 }
 
+function makeSignUpFixture({
+  onAccountSaved,
+}: {
+  onAccountSaved: (accountId: string) => void
+}) {
+  return async function signUp(options?: Partial<Account>) {
+    const { email, password } = makeAccount(options)
+    const salt = getNewSalt()
+    const hash = hashPassword({ password, salt })
+    const savedAccount = await prisma.account.create({
+      data: {
+        email,
+        Password: {
+          create: {
+            hash,
+            salt,
+          },
+        },
+      },
+    })
+    onAccountSaved(savedAccount.id)
+    return { email, password, id: savedAccount.id }
+  }
+}
+type SignUpFixture = ReturnType<typeof makeSignUpFixture>
+
+function makeLoginFixture({
+  signUp,
+  page,
+}: {
+  signUp: SignUpFixture
+  page: Page
+}) {
+  return async function login(options?: Partial<Account>) {
+    const { id, email } = await signUp(options)
+    const serializedAuthCookie = await authCookie.serialize(id)
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const cookieConfig = setCookieParser.parseString(
+      serializedAuthCookie,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any
+
+    await page.context().addCookies([{ ...cookieConfig, domain: 'localhost' }])
+
+    return { id, email }
+  }
+}
+type LoginFixture = ReturnType<typeof makeLoginFixture>
+
+function makeCreateBoardFixture({ login }: { login: LoginFixture }) {
+  return async function createBoard(options?: PartialDeep<Board>) {
+    const { id: accountId } = await login()
+    const board = makeBoard(options)
+
+    const savedBoard = await prisma.board.create({
+      select: {
+        name: true,
+        id: true,
+        columns: { select: { name: true, id: true } },
+      },
+      data: {
+        name: board.name,
+        owner: {
+          connect: {
+            id: accountId,
+          },
+        },
+        columns: {
+          create: board.columns.map(({ name }) => ({
+            name,
+          })),
+        },
+      },
+    })
+    return savedBoard
+  }
+}
+type CreateBoardFixture = ReturnType<typeof makeCreateBoardFixture>
+
+function makeCreateTasksFixture() {
+  return async function createTasks(
+    ...options: Array<
+      Parameters<typeof makeTask>[0] & { boardId: string; columnId: string }
+    >
+  ) {
+    return await Promise.all(
+      options.map((taskOption) => {
+        const { boardId, columnId, ...taskData } = taskOption
+        const task = makeTask(taskData)
+
+        return prisma.task.create({
+          data: {
+            title: task.title,
+            description: task.description,
+            subtasks: {
+              create: task.subtasks.map(({ title, isCompleted }) => ({
+                title,
+                isCompleted,
+              })),
+            },
+            Column: {
+              connect: {
+                id: columnId,
+              },
+            },
+            Board: {
+              connect: {
+                id: boardId,
+              },
+            },
+          },
+        })
+      }),
+    )
+  }
+}
+type CreateTasksFixture = ReturnType<typeof makeCreateTasksFixture>
+
 export const test = base.extend<{
-  signUp: (options?: Partial<Account>) => Promise<Account>
-  login: (options?: Partial<Account>) => Promise<Omit<Account, 'password'>>
-  createBoard: (options?: PartialDeep<Board>) => Promise<Board>
+  signUp: SignUpFixture
+  login: LoginFixture
+  createBoard: CreateBoardFixture
+  createTasks: CreateTasksFixture
 }>({
   signUp: async ({}, use) => {
     let accountId = ''
-    await use(async (options) => {
-      const { email, password } = makeAccount(options)
-      const salt = getNewSalt()
-      const hash = hashPassword({ password, salt })
-      const savedAccount = await prisma.account.create({
-        data: {
-          email,
-          Password: {
-            create: {
-              hash,
-              salt,
-            },
-          },
-        },
-      })
-      accountId = savedAccount.id
-      return { email, password, id: accountId }
-    })
+    await use(makeSignUpFixture({ onAccountSaved: (id) => (accountId = id) }))
     await prisma.account.delete({
       where: { id: accountId },
     })
   },
-
   login: async ({ signUp, page }, use) => {
-    await use(async (options) => {
-      const { id, email } = await signUp(options)
-      const serializedAuthCookie = await authCookie.serialize(id)
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const cookieConfig = setCookieParser.parseString(
-        serializedAuthCookie,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ) as any
-
-      await page
-        .context()
-        .addCookies([{ ...cookieConfig, domain: 'localhost' }])
-
-      return { id, email }
-    })
+    await use(makeLoginFixture({ signUp, page }))
   },
-
   createBoard: async ({ login }, use) => {
-    await use(async (options) => {
-      const { id: accountId } = await login()
-      const board = makeBoard(options)
-
-      const savedBoard = await prisma.board.create({
-        select: { name: true, columns: { select: { name: true } } },
-        data: {
-          name: board.name,
-          owner: {
-            connect: {
-              id: accountId,
-            },
-          },
-          columns: {
-            create: board.columns.map(({ name }) => ({
-              name,
-            })),
-          },
-        },
-      })
-      return savedBoard
-    })
+    await use(makeCreateBoardFixture({ login }))
+  },
+  createTasks: async ({}, use) => {
+    await use(makeCreateTasksFixture())
   },
 })
 
