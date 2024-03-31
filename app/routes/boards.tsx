@@ -182,7 +182,7 @@ export default function Home() {
         >
           <Modal>
             <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
-              <Heading className="mb-6 text-lg font-bold">
+              <Heading slot="title" className="mb-6 text-lg font-bold">
                 Add New Board
               </Heading>
               <Form

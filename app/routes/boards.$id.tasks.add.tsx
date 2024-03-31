@@ -124,7 +124,11 @@ export default function Board() {
     >
       <Modal>
         <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
-          <Heading id="create-task-modal-title" className="text-lg font-bold">
+          <Heading
+            slot="title"
+            id="create-task-modal-title"
+            className="text-lg font-bold"
+          >
             Add New Task
           </Heading>
           <fetcher.Form
