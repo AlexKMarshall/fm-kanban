@@ -9,6 +9,8 @@ import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
+import { IconButton } from '~/ui/button'
+import { VerticalEllipsisIcon } from '~/ui/icons/VerticalEllipsisIcon'
 import { ButtonLink } from '~/ui/link'
 
 const ROUTE_ID = 'routes/boards.$id'
@@ -46,7 +48,7 @@ export default function Board() {
 
   return (
     <div className="flex flex-grow flex-col border-l border-l-gray-200 bg-gray-50">
-      <div className="flex items-center gap-8 border-b border-b-gray-200 bg-white p-4">
+      <div className="flex items-center gap-6 border-b border-b-gray-200 bg-white p-4">
         <h1 className="text-xl font-bold">{board.name}</h1>
         <ButtonLink
           aria-disabled={board.columns.length === 0}
@@ -55,6 +57,9 @@ export default function Board() {
         >
           + Add New Task
         </ButtonLink>
+        <IconButton>
+          <VerticalEllipsisIcon />
+        </IconButton>
         <Outlet />
       </div>
       {columnsWithTasks.length ? (
