@@ -17,8 +17,15 @@ import {
   useLocation,
   useNavigation,
 } from '@remix-run/react'
-import { useEffect, useRef, useState } from 'react'
-import { Dialog, Heading, Modal, ModalOverlay } from 'react-aria-components'
+import { useEffect, useState } from 'react'
+import {
+  Dialog,
+  Button as DialogButton,
+  DialogTrigger,
+  Heading,
+  Modal,
+  ModalOverlay,
+} from 'react-aria-components'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
@@ -91,7 +98,6 @@ const INTENTS = {
 } as const
 
 export default function Home() {
-  const mobileMenuRef = useRef<HTMLDialogElement>(null)
   const actionData = useActionData<typeof action>()
   const [form, fields] = useForm<z.infer<typeof createBoardSchema>>({
     defaultValue: {
@@ -133,42 +139,34 @@ export default function Home() {
             </span>
           </Link>
           <h1 className="sm:hidden">
-            <button
-              onClick={() => mobileMenuRef.current?.showModal()}
-              className="flex items-start gap-2 text-left text-lg font-bold"
-            >
-              {currentBoard?.board.name}{' '}
-              <span className={currentBoard?.board.name ? 'sr-only' : ''}>
-                Select a board
-              </span>
-              <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
-                <ChevronDownIcon className="text-indigo-700" />
-              </span>
-            </button>
+            <DialogTrigger>
+              <DialogButton className="flex items-start gap-2 text-left text-lg font-bold">
+                {currentBoard?.board.name}{' '}
+                <span className={currentBoard?.board.name ? 'sr-only' : ''}>
+                  Select a board
+                </span>
+                <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+                  <ChevronDownIcon className="text-indigo-700" />
+                </span>
+              </DialogButton>
+              <ModalOverlay
+                isDismissable
+                className="fixed inset-0 flex items-center justify-center bg-gray-700/50"
+              >
+                <Modal>
+                  <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
+                    <BoardsNav
+                      boards={boards}
+                      onCreateBoardClick={() => {
+                        setIsCreateBoardModalOpen(true)
+                      }}
+                    />
+                  </Dialog>
+                </Modal>
+              </ModalOverlay>
+            </DialogTrigger>
           </h1>
         </div>
-        {/* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */}
-        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
-        <dialog
-          key={location.key}
-          ref={mobileMenuRef}
-          className="w-[30rem] max-w-full bg-transparent p-4 backdrop:bg-gray-700/50"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) {
-              event.currentTarget.close()
-            }
-          }}
-          aria-label="Mobile menu"
-        >
-          <div className="rounded-md bg-white p-6 sm:p-8">
-            <BoardsNav
-              boards={boards}
-              onCreateBoardClick={() => {
-                setIsCreateBoardModalOpen(true)
-              }}
-            />
-          </div>
-        </dialog>
         <BoardsNav
           boards={boards}
           onCreateBoardClick={() => {
