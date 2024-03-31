@@ -9,14 +9,13 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { Cross2Icon } from '@radix-ui/react-icons'
 import { ActionFunctionArgs, json, redirect } from '@remix-run/node'
 import { useActionData, useFetcher, useNavigate } from '@remix-run/react'
-import { Dialog, Heading } from 'react-aria-components'
 import invariant from 'tiny-invariant'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 import { Button, IconButton } from '~/ui/button'
-import { Modal } from '~/ui/dialog'
+import { Dialog, DialogTitle, Modal } from '~/ui/dialog'
 import { FieldError } from '~/ui/field-error'
 import { Input } from '~/ui/input'
 import { Label, Legend } from '~/ui/label'
@@ -122,14 +121,8 @@ export default function Board() {
         }
       }}
     >
-      <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
-        <Heading
-          slot="title"
-          id="create-task-modal-title"
-          className="text-lg font-bold"
-        >
-          Add New Task
-        </Heading>
+      <Dialog>
+        <DialogTitle id="create-task-modal-title">Add New Task</DialogTitle>
         <fetcher.Form
           method="post"
           {...getFormProps(form)}
