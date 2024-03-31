@@ -18,18 +18,18 @@ import {
   useNavigation,
 } from '@remix-run/react'
 import { useEffect, useState } from 'react'
-import {
-  Dialog,
-  Button as DialogButton,
-  DialogTrigger,
-  Heading,
-} from 'react-aria-components'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 import { Button, IconButton } from '~/ui/button'
-import { Modal } from '~/ui/dialog'
+import {
+  Dialog,
+  DialogTitle,
+  DialogTrigger,
+  DialogTriggerButton,
+  Modal,
+} from '~/ui/dialog'
 import { FieldError } from '~/ui/field-error'
 import { BoardIcon } from '~/ui/icons/BoardIcon'
 import { ChevronDownIcon } from '~/ui/icons/ChevronDownIcon'
@@ -139,7 +139,7 @@ export default function Home() {
           </Link>
           <h1 className="sm:hidden">
             <DialogTrigger>
-              <DialogButton className="flex items-start gap-2 text-left text-lg font-bold">
+              <DialogTriggerButton className="flex items-start gap-2 text-left text-lg font-bold">
                 {currentBoard?.board.name}{' '}
                 <span className={currentBoard?.board.name ? 'sr-only' : ''}>
                   Select a board
@@ -147,7 +147,7 @@ export default function Home() {
                 <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
                   <ChevronDownIcon className="text-indigo-700" />
                 </span>
-              </DialogButton>
+              </DialogTriggerButton>
               <Modal isDismissable>
                 <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
                   <BoardsNav
@@ -173,10 +173,8 @@ export default function Home() {
           isOpen={isCreateBoardModalOpen}
           onOpenChange={setIsCreateBoardModalOpen}
         >
-          <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
-            <Heading slot="title" className="mb-6 text-lg font-bold">
-              Add New Board
-            </Heading>
+          <Dialog>
+            <DialogTitle>Add New Board</DialogTitle>
             <Form
               method="post"
               {...getFormProps(form)}

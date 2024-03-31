@@ -1,12 +1,11 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from '@remix-run/node'
 import { useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
 import { useId } from 'react'
-import { Dialog, Heading } from 'react-aria-components'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
-import { Modal } from '~/ui/dialog'
+import { Dialog, DialogTitle, Modal } from '~/ui/dialog'
 import { Label } from '~/ui/label'
 
 const paramsSchema = z.object({
@@ -111,10 +110,8 @@ export default function Task() {
         }
       }}
     >
-      <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
-        <Heading slot="title" id={itemTitleId} className="text-lg font-bold">
-          {task.title}
-        </Heading>
+      <Dialog>
+        <DialogTitle id={itemTitleId}>{task.title}</DialogTitle>
         {task.description ? (
           <p className="text-sm text-gray-500">{task.description}</p>
         ) : null}
