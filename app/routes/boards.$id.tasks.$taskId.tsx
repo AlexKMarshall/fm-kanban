@@ -1,11 +1,12 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from '@remix-run/node'
 import { useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
 import { useId } from 'react'
-import { Dialog, Heading, Modal, ModalOverlay } from 'react-aria-components'
+import { Dialog, Heading } from 'react-aria-components'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
+import { Modal } from '~/ui/dialog'
 import { Label } from '~/ui/label'
 
 const paramsSchema = z.object({
@@ -101,8 +102,7 @@ export default function Task() {
   const fetcher = useFetcher()
 
   return (
-    <ModalOverlay
-      className="fixed inset-0 flex items-center justify-center bg-gray-700/50"
+    <Modal
       isDismissable
       isOpen
       onOpenChange={(isOpen) => {
@@ -111,56 +111,54 @@ export default function Task() {
         }
       }}
     >
-      <Modal>
-        <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
-          <Heading slot="title" id={itemTitleId} className="text-lg font-bold">
-            {task.title}
-          </Heading>
-          {task.description ? (
-            <p className="text-sm text-gray-500">{task.description}</p>
-          ) : null}
-          {task.subtasks.length > 0 ? (
-            <div className="flex flex-col gap-4">
-              <h3 className="text-xs font-bold text-gray-500">
-                Subtasks ({completedSubtaskCount} of {totalSubtaskCount})
-              </h3>
-              <ul className="flex flex-col gap-2">
-                {task.subtasks.map((subtask) => (
-                  <Subtask
-                    key={subtask.id}
-                    subtaskId={subtask.id}
-                    title={subtask.title}
-                    isCompleted={subtask.isCompleted}
-                  />
-                ))}
-              </ul>
+      <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
+        <Heading slot="title" id={itemTitleId} className="text-lg font-bold">
+          {task.title}
+        </Heading>
+        {task.description ? (
+          <p className="text-sm text-gray-500">{task.description}</p>
+        ) : null}
+        {task.subtasks.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            <h3 className="text-xs font-bold text-gray-500">
+              Subtasks ({completedSubtaskCount} of {totalSubtaskCount})
+            </h3>
+            <ul className="flex flex-col gap-2">
+              {task.subtasks.map((subtask) => (
+                <Subtask
+                  key={subtask.id}
+                  subtaskId={subtask.id}
+                  title={subtask.title}
+                  isCompleted={subtask.isCompleted}
+                />
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <fetcher.Form
+          method="post"
+          onChange={(event) => fetcher.submit(event.currentTarget)}
+        >
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap justify-between gap-2">
+              <Label htmlFor="column">Current Status</Label>
             </div>
-          ) : null}
-          <fetcher.Form
-            method="post"
-            onChange={(event) => fetcher.submit(event.currentTarget)}
-          >
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap justify-between gap-2">
-                <Label htmlFor="column">Current Status</Label>
-              </div>
-              <select name="columnId" id="column" defaultValue={task.Column.id}>
-                {columns.map((column) => (
-                  <option key={column.id} value={column.id}>
-                    {column.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <input
-              type="hidden"
-              name={INTENTS.updateColumn.fieldName}
-              value={INTENTS.updateColumn.value}
-            />
-          </fetcher.Form>
-        </Dialog>
-      </Modal>
-    </ModalOverlay>
+            <select name="columnId" id="column" defaultValue={task.Column.id}>
+              {columns.map((column) => (
+                <option key={column.id} value={column.id}>
+                  {column.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <input
+            type="hidden"
+            name={INTENTS.updateColumn.fieldName}
+            value={INTENTS.updateColumn.value}
+          />
+        </fetcher.Form>
+      </Dialog>
+    </Modal>
   )
 }
 

@@ -9,13 +9,14 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { Cross2Icon } from '@radix-ui/react-icons'
 import { ActionFunctionArgs, json, redirect } from '@remix-run/node'
 import { useActionData, useFetcher, useNavigate } from '@remix-run/react'
-import { Dialog, Heading, Modal, ModalOverlay } from 'react-aria-components'
+import { Dialog, Heading } from 'react-aria-components'
 import invariant from 'tiny-invariant'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 import { Button, IconButton } from '~/ui/button'
+import { Modal } from '~/ui/dialog'
 import { FieldError } from '~/ui/field-error'
 import { Input } from '~/ui/input'
 import { Label, Legend } from '~/ui/label'
@@ -112,7 +113,7 @@ export default function Board() {
   const navigate = useNavigate()
 
   return (
-    <ModalOverlay
+    <Modal
       isDismissable
       isOpen
       onOpenChange={(isOpen) => {
@@ -120,130 +121,127 @@ export default function Board() {
           navigate(-1)
         }
       }}
-      className="fixed inset-0 flex items-center justify-center bg-gray-700/50"
     >
-      <Modal>
-        <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
-          <Heading
-            slot="title"
-            id="create-task-modal-title"
-            className="text-lg font-bold"
+      <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
+        <Heading
+          slot="title"
+          id="create-task-modal-title"
+          className="text-lg font-bold"
+        >
+          Add New Task
+        </Heading>
+        <fetcher.Form
+          method="post"
+          {...getFormProps(form)}
+          className="flex flex-col gap-6"
+          aria-labelledby="create-task-modal-title"
+        >
+          {/* We need this button first in the form to be the default onEnter submission */}
+          <Button
+            type="submit"
+            className="hidden"
+            name={INTENTS.createTask.fieldName}
+            value={INTENTS.createTask.value}
+            tabIndex={-1}
           >
-            Add New Task
-          </Heading>
-          <fetcher.Form
-            method="post"
-            {...getFormProps(form)}
-            className="flex flex-col gap-6"
-            aria-labelledby="create-task-modal-title"
-          >
-            {/* We need this button first in the form to be the default onEnter submission */}
-            <Button
-              type="submit"
-              className="hidden"
-              name={INTENTS.createTask.fieldName}
-              value={INTENTS.createTask.value}
-              tabIndex={-1}
-            >
-              Create Task
-            </Button>
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap justify-between gap-2">
-                <Label htmlFor={fields.title.id}>Title</Label>
-                <FieldError
-                  id={fields.title.errorId}
-                  aria-live="polite"
-                  errors={fields.title.errors}
-                />
-              </div>
-              <Input
-                {...getInputProps(fields.title, { type: 'text' })}
-                placeholder="e.g. Take coffee break"
-                autoComplete="off"
+            Create Task
+          </Button>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap justify-between gap-2">
+              <Label htmlFor={fields.title.id}>Title</Label>
+              <FieldError
+                id={fields.title.errorId}
+                aria-live="polite"
+                errors={fields.title.errors}
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap justify-between gap-2">
-                <Label htmlFor={fields.description.id}>Description</Label>
-                <FieldError
-                  id={fields.description.errorId}
-                  aria-live="polite"
-                  errors={fields.description.errors}
-                />
-              </div>
-              <textarea
-                {...getTextareaProps(fields.description)}
-                placeholder="e.g. It’s always good to take a break. This 15 minute break will recharge the batteries a little."
-                autoComplete="off"
+            <Input
+              {...getInputProps(fields.title, { type: 'text' })}
+              placeholder="e.g. Take coffee break"
+              autoComplete="off"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap justify-between gap-2">
+              <Label htmlFor={fields.description.id}>Description</Label>
+              <FieldError
+                id={fields.description.errorId}
+                aria-live="polite"
+                errors={fields.description.errors}
               />
             </div>
-            <fieldset className="flex flex-col gap-3">
-              <Legend>Subtasks</Legend>
-              <ul className="flex flex-col gap-3">
-                {subtasks.map((subtask, index) => (
-                  <li key={subtask.key} className="flex flex-col gap-2">
-                    <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
-                      <Input
-                        aria-label="Subtask title"
-                        focusOnMount={index !== 0}
-                        {...getInputProps(subtask, { type: 'text' })}
-                        className="w-0 flex-1"
-                      />
-                      <IconButton
-                        {...form.remove.getButtonProps({
-                          name: fields.subtasks.name,
-                          index,
-                        })}
-                        aria-label="Remove"
-                        className="self-center"
-                      >
-                        <Cross2Icon aria-hidden />
-                      </IconButton>
-                    </div>
-                    <FieldError
-                      id={subtask.errorId}
-                      aria-live="polite"
-                      errors={subtask.errors}
+            <textarea
+              {...getTextareaProps(fields.description)}
+              placeholder="e.g. It’s always good to take a break. This 15 minute break will recharge the batteries a little."
+              autoComplete="off"
+            />
+          </div>
+          <fieldset className="flex flex-col gap-3">
+            <Legend>Subtasks</Legend>
+            <ul className="flex flex-col gap-3">
+              {subtasks.map((subtask, index) => (
+                <li key={subtask.key} className="flex flex-col gap-2">
+                  <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
+                    <Input
+                      aria-label="Subtask title"
+                      focusOnMount={index !== 0}
+                      {...getInputProps(subtask, { type: 'text' })}
+                      className="w-0 flex-1"
                     />
-                  </li>
-                ))}
-              </ul>
-              <Button
-                {...form.insert.getButtonProps({ name: fields.subtasks.name })}
-                className="bg-indigo-700/10 text-indigo-700"
-              >
-                + Add New Subtask
-              </Button>
-            </fieldset>
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap justify-between gap-2">
-                <Label htmlFor={fields.columnId.id}>Status</Label>
-                <FieldError
-                  id={fields.columnId.errorId}
-                  aria-live="polite"
-                  errors={fields.columnId.errors}
-                />
-              </div>
-              <select {...getSelectProps(fields.columnId)}>
-                {board.columns.map((column) => (
-                  <option key={column.id} value={column.id}>
-                    {column.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+                    <IconButton
+                      {...form.remove.getButtonProps({
+                        name: fields.subtasks.name,
+                        index,
+                      })}
+                      aria-label="Remove"
+                      className="self-center"
+                    >
+                      <Cross2Icon aria-hidden />
+                    </IconButton>
+                  </div>
+                  <FieldError
+                    id={subtask.errorId}
+                    aria-live="polite"
+                    errors={subtask.errors}
+                  />
+                </li>
+              ))}
+            </ul>
             <Button
-              type="submit"
-              name={INTENTS.createTask.fieldName}
-              value={INTENTS.createTask.value}
-              className="bg-indigo-700 text-white"
+              {...form.insert.getButtonProps({ name: fields.subtasks.name })}
+              className="bg-indigo-700/10 text-indigo-700"
             >
-              {fetcher.state === 'idle' ? 'Create Task' : 'Creating Task...'}
+              + Add New Subtask
             </Button>
-          </fetcher.Form>
-        </Dialog>
-      </Modal>
-    </ModalOverlay>
+          </fieldset>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap justify-between gap-2">
+              <Label htmlFor={fields.columnId.id}>Status</Label>
+              <FieldError
+                id={fields.columnId.errorId}
+                aria-live="polite"
+                errors={fields.columnId.errors}
+              />
+            </div>
+            <select {...getSelectProps(fields.columnId)}>
+              {board.columns.map((column) => (
+                <option key={column.id} value={column.id}>
+                  {column.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Button
+            type="submit"
+            name={INTENTS.createTask.fieldName}
+            value={INTENTS.createTask.value}
+            className="bg-indigo-700 text-white"
+          >
+            {fetcher.state === 'idle' ? 'Create Task' : 'Creating Task...'}
+          </Button>
+        </fetcher.Form>
+      </Dialog>
+    </Modal>
   )
 }
 
