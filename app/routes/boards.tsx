@@ -17,7 +17,15 @@ import {
   useLocation,
   useNavigation,
 } from '@remix-run/react'
-import { useRef } from 'react'
+import { useEffect, useState } from 'react'
+import {
+  Dialog,
+  Button as DialogButton,
+  DialogTrigger,
+  Heading,
+  Modal,
+  ModalOverlay,
+} from 'react-aria-components'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
@@ -90,9 +98,7 @@ const INTENTS = {
 } as const
 
 export default function Home() {
-  const createBoardModalRef = useRef<HTMLDialogElement>(null)
-  const mobileMenuRef = useRef<HTMLDialogElement>(null)
-  const lastResult = useActionData<typeof action>()
+  const actionData = useActionData<typeof action>()
   const [form, fields] = useForm<z.infer<typeof createBoardSchema>>({
     defaultValue: {
       name: '',
@@ -100,7 +106,7 @@ export default function Home() {
     },
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
-    lastResult,
+    lastResult: actionData,
     constraint: getZodConstraint(createBoardSchema),
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: createBoardSchema })
@@ -116,6 +122,12 @@ export default function Home() {
   const currentBoard = useBoardLoaderData()
   const location = useLocation()
 
+  const [isCreateBoardModalOpen, setIsCreateBoardModalOpen] = useState(false)
+  useEffect(() => {
+    // Close the modal when the path changes (e.g. when a new board is created and we redirect to the board id)
+    setIsCreateBoardModalOpen(false)
+  }, [location.pathname])
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-[16rem_1fr] md:grid-cols-[19rem_1fr]">
       <header className="overflow-auto p-8 sm:max-h-screen">
@@ -127,150 +139,141 @@ export default function Home() {
             </span>
           </Link>
           <h1 className="sm:hidden">
-            <button
-              onClick={() => mobileMenuRef.current?.showModal()}
-              className="flex items-start gap-2 text-left text-lg font-bold"
-            >
-              {currentBoard?.board.name}{' '}
-              <span className={currentBoard?.board.name ? 'sr-only' : ''}>
-                Select a board
-              </span>
-              <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
-                <ChevronDownIcon className="text-indigo-700" />
-              </span>
-            </button>
+            <DialogTrigger>
+              <DialogButton className="flex items-start gap-2 text-left text-lg font-bold">
+                {currentBoard?.board.name}{' '}
+                <span className={currentBoard?.board.name ? 'sr-only' : ''}>
+                  Select a board
+                </span>
+                <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+                  <ChevronDownIcon className="text-indigo-700" />
+                </span>
+              </DialogButton>
+              <ModalOverlay
+                isDismissable
+                className="fixed inset-0 flex items-center justify-center bg-gray-700/50"
+              >
+                <Modal>
+                  <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
+                    <BoardsNav
+                      boards={boards}
+                      onCreateBoardClick={() => {
+                        setIsCreateBoardModalOpen(true)
+                      }}
+                    />
+                  </Dialog>
+                </Modal>
+              </ModalOverlay>
+            </DialogTrigger>
           </h1>
         </div>
-        {/* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */}
-        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
-        <dialog
-          key={location.key}
-          ref={mobileMenuRef}
-          className="w-[30rem] max-w-full bg-transparent p-4 backdrop:bg-gray-700/50"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) {
-              event.currentTarget.close()
-            }
-          }}
-          aria-label="Mobile menu"
-        >
-          <div className="rounded-md bg-white p-6 sm:p-8">
-            <BoardsNav
-              boards={boards}
-              onCreateBoardClick={() => {
-                createBoardModalRef.current?.showModal()
-              }}
-            />
-          </div>
-        </dialog>
         <BoardsNav
           boards={boards}
           onCreateBoardClick={() => {
-            createBoardModalRef.current?.showModal()
+            setIsCreateBoardModalOpen(true)
           }}
           className="hidden sm:block"
         />
+        <ModalOverlay
+          isDismissable
+          isOpen={isCreateBoardModalOpen}
+          onOpenChange={setIsCreateBoardModalOpen}
+          className="fixed inset-0 flex items-center justify-center bg-gray-700/50"
+        >
+          <Modal>
+            <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
+              <Heading className="mb-6 text-lg font-bold">
+                Add New Board
+              </Heading>
+              <Form
+                method="post"
+                {...getFormProps(form)}
+                className="flex flex-col gap-6"
+                aria-labelledby="create-board-dialog-title"
+              >
+                {/* We need this button first in the form to be the default onEnter submission */}
+                <Button
+                  type="submit"
+                  className="hidden"
+                  name={INTENTS.createBoard.fieldName}
+                  value={INTENTS.createBoard.value}
+                  tabIndex={-1}
+                >
+                  Create new board
+                </Button>
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-wrap justify-between gap-2">
+                    <Label htmlFor={fields.name.id}>Name</Label>
+                    <FieldError
+                      id={fields.name.errorId}
+                      aria-live="polite"
+                      errors={fields.name.errors}
+                    />
+                  </div>
+                  <Input
+                    {...getInputProps(fields.name, { type: 'text' })}
+                    placeholder="e.g. Web Design"
+                    autoComplete="off"
+                  />
+                </div>
+                <fieldset className="flex flex-col gap-3">
+                  <Legend>Columns</Legend>
+                  <ul className="flex flex-col gap-3">
+                    {columns.map((column, index) => (
+                      <li key={column.key} className="flex flex-col gap-2">
+                        <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
+                          <Input
+                            focusOnMount={index !== 0}
+                            aria-label="Column name"
+                            {...getInputProps(column, { type: 'text' })}
+                            className="w-0 flex-1"
+                          />
+                          <IconButton
+                            {...form.remove.getButtonProps({
+                              name: fields.columns.name,
+                              index,
+                            })}
+                            aria-label="Remove"
+                            className="self-center"
+                          >
+                            <Cross2Icon aria-hidden />
+                          </IconButton>
+                        </div>
+                        <FieldError
+                          id={column.errorId}
+                          aria-live="polite"
+                          errors={column.errors}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    {...form.insert.getButtonProps({
+                      name: fields.columns.name,
+                    })}
+                    className="bg-indigo-700/10 text-indigo-700"
+                  >
+                    + Add New Column
+                  </Button>
+                </fieldset>
+                <Button
+                  type="submit"
+                  name={INTENTS.createBoard.fieldName}
+                  value={INTENTS.createBoard.value}
+                  className="bg-indigo-700 text-white"
+                >
+                  {isCreatingBoard
+                    ? 'Creating New Board...'
+                    : 'Create New Board'}
+                </Button>
+              </Form>
+            </Dialog>
+          </Modal>
+        </ModalOverlay>
       </header>
       <main className="flex sm:max-h-screen sm:overflow-auto">
         <Outlet />
       </main>
-      {/* We don't need a keyboard handler for dialog click outside close as dialog natively handles Esc key close */}
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
-      <dialog
-        key={location.key}
-        ref={createBoardModalRef}
-        className="w-[30rem] max-w-full bg-transparent p-4 backdrop:bg-gray-700/50"
-        onClick={(event) => {
-          if (event.target === event.currentTarget) {
-            event.currentTarget.close()
-          }
-        }}
-        aria-labelledby="create-board-dialog-title"
-      >
-        <div className="rounded-md bg-white p-6 sm:p-8">
-          <h2 id="create-board-dialog-title" className="mb-6 text-lg font-bold">
-            Add New Board
-          </h2>
-          <Form
-            method="post"
-            {...getFormProps(form)}
-            className="flex flex-col gap-6"
-            aria-labelledby="create-board-dialog-title"
-          >
-            {/* We need this button first in the form to be the default onEnter submission */}
-            <Button
-              type="submit"
-              className="hidden"
-              name={INTENTS.createBoard.fieldName}
-              value={INTENTS.createBoard.value}
-              tabIndex={-1}
-            >
-              Create new board
-            </Button>
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap justify-between gap-2">
-                <Label htmlFor={fields.name.id}>Name</Label>
-                <FieldError
-                  id={fields.name.errorId}
-                  aria-live="polite"
-                  errors={fields.name.errors}
-                />
-              </div>
-              <Input
-                {...getInputProps(fields.name, { type: 'text' })}
-                placeholder="e.g. Web Design"
-                autoComplete="off"
-              />
-            </div>
-            <fieldset className="flex flex-col gap-3">
-              <Legend>Columns</Legend>
-              <ul className="flex flex-col gap-3">
-                {columns.map((column, index) => (
-                  <li key={column.key} className="flex flex-col gap-2">
-                    <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
-                      <Input
-                        focusOnMount={index !== 0}
-                        aria-label="Column name"
-                        {...getInputProps(column, { type: 'text' })}
-                        className="w-0 flex-1"
-                      />
-                      <IconButton
-                        {...form.remove.getButtonProps({
-                          name: fields.columns.name,
-                          index,
-                        })}
-                        aria-label="Remove"
-                        className="self-center"
-                      >
-                        <Cross2Icon aria-hidden />
-                      </IconButton>
-                    </div>
-                    <FieldError
-                      id={column.errorId}
-                      aria-live="polite"
-                      errors={column.errors}
-                    />
-                  </li>
-                ))}
-              </ul>
-              <Button
-                {...form.insert.getButtonProps({ name: fields.columns.name })}
-                className="bg-indigo-700/10 text-indigo-700"
-              >
-                + Add New Column
-              </Button>
-            </fieldset>
-            <Button
-              type="submit"
-              name={INTENTS.createBoard.fieldName}
-              value={INTENTS.createBoard.value}
-              className="bg-indigo-700 text-white"
-            >
-              {isCreatingBoard ? 'Creating New Board...' : 'Create New Board'}
-            </Button>
-          </Form>
-        </div>
-      </dialog>
     </div>
   )
 }
