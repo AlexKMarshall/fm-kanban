@@ -23,14 +23,13 @@ import {
   Button as DialogButton,
   DialogTrigger,
   Heading,
-  Modal,
-  ModalOverlay,
 } from 'react-aria-components'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 import { Button, IconButton } from '~/ui/button'
+import { Modal } from '~/ui/dialog'
 import { FieldError } from '~/ui/field-error'
 import { BoardIcon } from '~/ui/icons/BoardIcon'
 import { ChevronDownIcon } from '~/ui/icons/ChevronDownIcon'
@@ -149,21 +148,16 @@ export default function Home() {
                   <ChevronDownIcon className="text-indigo-700" />
                 </span>
               </DialogButton>
-              <ModalOverlay
-                isDismissable
-                className="fixed inset-0 flex items-center justify-center bg-gray-700/50"
-              >
-                <Modal>
-                  <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
-                    <BoardsNav
-                      boards={boards}
-                      onCreateBoardClick={() => {
-                        setIsCreateBoardModalOpen(true)
-                      }}
-                    />
-                  </Dialog>
-                </Modal>
-              </ModalOverlay>
+              <Modal isDismissable>
+                <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
+                  <BoardsNav
+                    boards={boards}
+                    onCreateBoardClick={() => {
+                      setIsCreateBoardModalOpen(true)
+                    }}
+                  />
+                </Dialog>
+              </Modal>
             </DialogTrigger>
           </h1>
         </div>
@@ -174,102 +168,97 @@ export default function Home() {
           }}
           className="hidden sm:block"
         />
-        <ModalOverlay
+        <Modal
           isDismissable
           isOpen={isCreateBoardModalOpen}
           onOpenChange={setIsCreateBoardModalOpen}
-          className="fixed inset-0 flex items-center justify-center bg-gray-700/50"
         >
-          <Modal>
-            <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
-              <Heading slot="title" className="mb-6 text-lg font-bold">
-                Add New Board
-              </Heading>
-              <Form
-                method="post"
-                {...getFormProps(form)}
-                className="flex flex-col gap-6"
-                aria-labelledby="create-board-dialog-title"
+          <Dialog className="m-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8">
+            <Heading slot="title" className="mb-6 text-lg font-bold">
+              Add New Board
+            </Heading>
+            <Form
+              method="post"
+              {...getFormProps(form)}
+              className="flex flex-col gap-6"
+              aria-labelledby="create-board-dialog-title"
+            >
+              {/* We need this button first in the form to be the default onEnter submission */}
+              <Button
+                type="submit"
+                className="hidden"
+                name={INTENTS.createBoard.fieldName}
+                value={INTENTS.createBoard.value}
+                tabIndex={-1}
               >
-                {/* We need this button first in the form to be the default onEnter submission */}
-                <Button
-                  type="submit"
-                  className="hidden"
-                  name={INTENTS.createBoard.fieldName}
-                  value={INTENTS.createBoard.value}
-                  tabIndex={-1}
-                >
-                  Create new board
-                </Button>
-                <div className="flex flex-col gap-2">
-                  <div className="flex flex-wrap justify-between gap-2">
-                    <Label htmlFor={fields.name.id}>Name</Label>
-                    <FieldError
-                      id={fields.name.errorId}
-                      aria-live="polite"
-                      errors={fields.name.errors}
-                    />
-                  </div>
-                  <Input
-                    {...getInputProps(fields.name, { type: 'text' })}
-                    placeholder="e.g. Web Design"
-                    autoComplete="off"
+                Create new board
+              </Button>
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap justify-between gap-2">
+                  <Label htmlFor={fields.name.id}>Name</Label>
+                  <FieldError
+                    id={fields.name.errorId}
+                    aria-live="polite"
+                    errors={fields.name.errors}
                   />
                 </div>
-                <fieldset className="flex flex-col gap-3">
-                  <Legend>Columns</Legend>
-                  <ul className="flex flex-col gap-3">
-                    {columns.map((column, index) => (
-                      <li key={column.key} className="flex flex-col gap-2">
-                        <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
-                          <Input
-                            focusOnMount={index !== 0}
-                            aria-label="Column name"
-                            {...getInputProps(column, { type: 'text' })}
-                            className="w-0 flex-1"
-                          />
-                          <IconButton
-                            {...form.remove.getButtonProps({
-                              name: fields.columns.name,
-                              index,
-                            })}
-                            aria-label="Remove"
-                            className="self-center"
-                          >
-                            <Cross2Icon aria-hidden />
-                          </IconButton>
-                        </div>
-                        <FieldError
-                          id={column.errorId}
-                          aria-live="polite"
-                          errors={column.errors}
+                <Input
+                  {...getInputProps(fields.name, { type: 'text' })}
+                  placeholder="e.g. Web Design"
+                  autoComplete="off"
+                />
+              </div>
+              <fieldset className="flex flex-col gap-3">
+                <Legend>Columns</Legend>
+                <ul className="flex flex-col gap-3">
+                  {columns.map((column, index) => (
+                    <li key={column.key} className="flex flex-col gap-2">
+                      <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
+                        <Input
+                          focusOnMount={index !== 0}
+                          aria-label="Column name"
+                          {...getInputProps(column, { type: 'text' })}
+                          className="w-0 flex-1"
                         />
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    {...form.insert.getButtonProps({
-                      name: fields.columns.name,
-                    })}
-                    className="bg-indigo-700/10 text-indigo-700"
-                  >
-                    + Add New Column
-                  </Button>
-                </fieldset>
+                        <IconButton
+                          {...form.remove.getButtonProps({
+                            name: fields.columns.name,
+                            index,
+                          })}
+                          aria-label="Remove"
+                          className="self-center"
+                        >
+                          <Cross2Icon aria-hidden />
+                        </IconButton>
+                      </div>
+                      <FieldError
+                        id={column.errorId}
+                        aria-live="polite"
+                        errors={column.errors}
+                      />
+                    </li>
+                  ))}
+                </ul>
                 <Button
-                  type="submit"
-                  name={INTENTS.createBoard.fieldName}
-                  value={INTENTS.createBoard.value}
-                  className="bg-indigo-700 text-white"
+                  {...form.insert.getButtonProps({
+                    name: fields.columns.name,
+                  })}
+                  className="bg-indigo-700/10 text-indigo-700"
                 >
-                  {isCreatingBoard
-                    ? 'Creating New Board...'
-                    : 'Create New Board'}
+                  + Add New Column
                 </Button>
-              </Form>
-            </Dialog>
-          </Modal>
-        </ModalOverlay>
+              </fieldset>
+              <Button
+                type="submit"
+                name={INTENTS.createBoard.fieldName}
+                value={INTENTS.createBoard.value}
+                className="bg-indigo-700 text-white"
+              >
+                {isCreatingBoard ? 'Creating New Board...' : 'Create New Board'}
+              </Button>
+            </Form>
+          </Dialog>
+        </Modal>
       </header>
       <main className="flex sm:max-h-screen sm:overflow-auto">
         <Outlet />
