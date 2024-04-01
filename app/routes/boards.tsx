@@ -223,6 +223,7 @@ export default function Home() {
                             name: fields.columns.name,
                             index,
                           })}
+                          type="submit"
                           aria-label="Remove"
                           className="self-center"
                         >
@@ -242,6 +243,7 @@ export default function Home() {
                     name: fields.columns.name,
                   })}
                   className="bg-indigo-700/10 text-indigo-700"
+                  type="submit"
                 >
                   + Add New Column
                 </Button>

@@ -188,6 +188,7 @@ export default function Board() {
                       })}
                       aria-label="Remove"
                       className="self-center"
+                      type="submit"
                     >
                       <Cross2Icon aria-hidden />
                     </IconButton>
@@ -202,6 +203,7 @@ export default function Board() {
             </ul>
             <Button
               {...form.insert.getButtonProps({ name: fields.subtasks.name })}
+              type="submit"
               className="bg-indigo-700/10 text-indigo-700"
             >
               + Add New Subtask
