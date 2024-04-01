@@ -95,7 +95,7 @@ export default function Board() {
           + Add New Task
         </ButtonLink>
         <MenuTrigger>
-          <IconButton>
+          <IconButton aria-label="Board menu">
             <VerticalEllipsisIcon />
           </IconButton>
           <Popover containerPadding={24} offset={24}>
@@ -130,7 +130,7 @@ export default function Board() {
             }
           }}
         >
-          <Dialog>
+          <Dialog role="alertdialog">
             {({ close }) => (
               <>
                 <DialogTitle>Delete this board?</DialogTitle>
