@@ -1,4 +1,5 @@
 import { ComponentPropsWithoutRef, forwardRef } from 'react'
+import { Button as RACButton } from 'react-aria-components'
 import { tv } from 'tailwind-variants'
 
 export const buttonVariants = tv({
@@ -7,19 +8,23 @@ export const buttonVariants = tv({
 
 export const Button = forwardRef<
   HTMLButtonElement,
-  ComponentPropsWithoutRef<'button'>
+  Omit<ComponentPropsWithoutRef<typeof RACButton>, 'className'> & {
+    className?: string
+  }
 >(function Button({ className, ...props }, ref) {
   return (
-    <button {...props} className={buttonVariants({ className })} ref={ref} />
+    <RACButton {...props} className={buttonVariants({ className })} ref={ref} />
   )
 })
 
 export const IconButton = forwardRef<
   HTMLButtonElement,
-  ComponentPropsWithoutRef<'button'>
+  Omit<ComponentPropsWithoutRef<typeof RACButton>, 'className'> & {
+    className?: string
+  }
 >(function IconButton({ className, ...props }, ref) {
   return (
-    <button
+    <RACButton
       {...props}
       className={tv({
         // Create a pseudo element with a minimum tap target size of 48px

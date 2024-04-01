@@ -1,14 +1,25 @@
-import { LoaderFunctionArgs, json } from '@remix-run/node'
 import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  json,
+  redirect,
+} from '@remix-run/node'
+import {
+  Form,
   Link,
   Outlet,
   useLoaderData,
   useRouteLoaderData,
 } from '@remix-run/react'
+import { useState } from 'react'
+import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
+import { Button, IconButton } from '~/ui/button'
+import { CloseButton, Dialog, DialogTitle, Modal } from '~/ui/dialog'
+import { VerticalEllipsisIcon } from '~/ui/icons/VerticalEllipsisIcon'
 import { ButtonLink } from '~/ui/link'
 
 const ROUTE_ID = 'routes/boards.$id'
@@ -32,6 +43,32 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json({ board })
 }
 
+const INTENTS = {
+  delete: 'delete',
+} as const
+
+const actionSchema = z.object({
+  intent: z.enum(['delete']),
+})
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  const accountId = await requireAuthCookie(request)
+  const { id } = paramsSchema.parse(params)
+
+  const formData = await request.formData()
+  const { intent } = actionSchema.parse(Object.fromEntries(formData.entries()))
+
+  if (intent === INTENTS.delete) {
+    await prisma.board.delete({
+      where: { id, ownerId: accountId },
+    })
+
+    return redirect('/boards')
+  }
+
+  return null
+}
+
 export function useBoardLoaderData() {
   return useRouteLoaderData<typeof loader>(ROUTE_ID)
 }
@@ -44,9 +81,11 @@ export default function Board() {
     tasks: board.tasks.filter((task) => task.columnId === column.id),
   }))
 
+  const [modalOpen, setModalOpen] = useState<'delete' | null>(null)
+
   return (
     <div className="flex flex-grow flex-col border-l border-l-gray-200 bg-gray-50">
-      <div className="flex items-center gap-8 border-b border-b-gray-200 bg-white p-4">
+      <div className="flex items-center gap-6 border-b border-b-gray-200 bg-white p-4">
         <h1 className="text-xl font-bold">{board.name}</h1>
         <ButtonLink
           aria-disabled={board.columns.length === 0}
@@ -55,6 +94,68 @@ export default function Board() {
         >
           + Add New Task
         </ButtonLink>
+        <MenuTrigger>
+          <IconButton aria-label="Board menu">
+            <VerticalEllipsisIcon />
+          </IconButton>
+          <Popover containerPadding={24} offset={24}>
+            <Menu
+              onAction={(key) => {
+                if (key === 'delete') {
+                  setModalOpen('delete')
+                }
+              }}
+              className="flex min-w-48 flex-col gap-4 rounded-lg bg-white p-4"
+            >
+              <MenuItem
+                id="edit"
+                className="cursor-pointer rounded text-sm text-gray-500 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-indigo-700"
+              >
+                Edit Board
+              </MenuItem>
+              <MenuItem
+                id="delete"
+                className="cursor-pointer rounded text-sm text-red-700 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-red-700"
+              >
+                Delete Board
+              </MenuItem>
+            </Menu>
+          </Popover>
+        </MenuTrigger>
+        <Modal
+          isOpen={modalOpen === 'delete'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setModalOpen(null)
+            }
+          }}
+        >
+          <Dialog role="alertdialog">
+            <DialogTitle>Delete this board?</DialogTitle>
+            <p>
+              Are you sure you want to delete the ‘Platform Launch’ board? This
+              action will remove all columns and tasks and cannot be reversed.
+            </p>
+            <Form method="post">
+              <div className="flex gap-4">
+                <Button
+                  type="submit"
+                  name="intent"
+                  value={INTENTS.delete}
+                  className="grow bg-red-700 text-white"
+                >
+                  Delete
+                </Button>
+                <CloseButton
+                  type="button"
+                  className="grow bg-indigo-200 text-indigo-700"
+                >
+                  Cancel
+                </CloseButton>
+              </div>
+            </Form>
+          </Dialog>
+        </Modal>
         <Outlet />
       </div>
       {columnsWithTasks.length ? (

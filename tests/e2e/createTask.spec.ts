@@ -1,19 +1,21 @@
-import { makeColumn } from 'tests/factories/board'
+import { faker } from '@faker-js/faker'
+
+import { makeColumn, makeTask } from 'tests/factories/board'
 
 import { expect, test } from '../playwright-utils'
 
 test('create task', async ({ page, createBoard }) => {
   const column1 = makeColumn()
   const column2 = makeColumn()
-  const task1 = {
-    title: 'task 1',
-    description: 'description 1',
-  }
-  const task2 = {
-    title: 'task 2',
-    description: 'description 2',
-    subtasks: ['subtask 1', 'subtask 2'],
-  }
+  const task1Description = faker.lorem.paragraph()
+  const task2Description = faker.lorem.paragraph()
+  const task1 = makeTask({
+    description: task1Description,
+    subtasks: [],
+  })
+  const task2 = makeTask({
+    description: task2Description,
+  })
   const boardWithTwoColumns = await createBoard({ columns: [column1, column2] })
 
   await page.goto('/')
@@ -29,7 +31,7 @@ test('create task', async ({ page, createBoard }) => {
     .fill(task1.title)
   await addNewTaskForm
     .getByRole('textbox', { name: /description/i })
-    .fill(task1.description)
+    .fill(task1Description)
   await addNewTaskForm
     .getByRole('combobox', { name: /status/i })
     .selectOption(column1.name)
@@ -46,7 +48,7 @@ test('create task', async ({ page, createBoard }) => {
   await card1.getByRole('link', { name: task1.title }).click()
   const taskDialog = page.getByRole('dialog', { name: task1.title })
   await expect(taskDialog).toBeVisible()
-  await expect(taskDialog).toContainText(task1.description)
+  await expect(taskDialog.getByText(task1Description)).toBeVisible()
   // Ideally we'd also verify that the status select has the correct value
   // But playwright currently doesn't let you check by the visible text of an option, only its value
   // And we don't want to check the column id directly as it's an implementation detail
@@ -63,7 +65,7 @@ test('create task', async ({ page, createBoard }) => {
     .fill(task2.title)
   await addNewTaskForm
     .getByRole('textbox', { name: /description/i })
-    .fill(task2.description)
+    .fill(task2Description)
   await addNewTaskForm
     .getByRole('combobox', { name: /status/i })
     .selectOption(column2.name)
@@ -78,7 +80,7 @@ test('create task', async ({ page, createBoard }) => {
     await addNewTaskForm
       .getByRole('textbox', { name: /subtask title/i })
       .last()
-      .fill(subtask)
+      .fill(subtask.title)
   }
 
   await addNewTaskForm.getByRole('button', { name: /create task/i }).click()
@@ -90,19 +92,21 @@ test('create task', async ({ page, createBoard }) => {
     .getByRole('listitem')
     .filter({ has: page.getByRole('heading', { name: task2.title }) })
   await expect(card2).toBeVisible()
-  await expect(card2).toContainText(`0 of ${task2.subtasks.length} subtasks`)
+  await expect(
+    card2.getByText(`0 of ${task2.subtasks.length} subtasks`),
+  ).toBeVisible()
 
   // View the details of the task
   await card2.getByRole('link', { name: task2.title }).click()
   const task2Dialog = page.getByRole('dialog', { name: task2.title })
   await expect(task2Dialog).toBeVisible()
-  await expect(task2Dialog).toContainText(task2.description)
+  await expect(task2Dialog.getByText(task2Description)).toBeVisible()
   await expect(
     task2Dialog.getByRole('heading', {
       name: `Subtasks (0 of ${task2.subtasks.length})`,
     }),
   ).toBeVisible()
   for (const subtask of task2.subtasks) {
-    await expect(task2Dialog).toContainText(subtask)
+    await expect(task2Dialog.getByText(subtask.title)).toBeVisible()
   }
 })
