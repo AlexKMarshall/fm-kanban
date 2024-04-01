@@ -1,5 +1,11 @@
-import { LoaderFunctionArgs, json } from '@remix-run/node'
 import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  json,
+  redirect,
+} from '@remix-run/node'
+import {
+  Form,
   Link,
   Outlet,
   useLoaderData,
@@ -35,6 +41,32 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   return json({ board })
+}
+
+const INTENTS = {
+  delete: 'delete',
+} as const
+
+const actionSchema = z.object({
+  intent: z.enum(['delete']),
+})
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  const accountId = await requireAuthCookie(request)
+  const { id } = paramsSchema.parse(params)
+
+  const formData = await request.formData()
+  const { intent } = actionSchema.parse(Object.fromEntries(formData.entries()))
+
+  if (intent === INTENTS.delete) {
+    await prisma.board.delete({
+      where: { id, ownerId: accountId },
+    })
+
+    return redirect('/boards')
+  }
+
+  return null
 }
 
 export function useBoardLoaderData() {
@@ -107,15 +139,25 @@ export default function Board() {
                   This action will remove all columns and tasks and cannot be
                   reversed.
                 </p>
-                <div className="flex gap-4">
-                  <Button className="grow bg-red-700 text-white">Delete</Button>
-                  <Button
-                    className="grow bg-indigo-200 text-indigo-700"
-                    onClick={close}
-                  >
-                    Cancel
-                  </Button>
-                </div>
+                <Form method="post">
+                  <div className="flex gap-4">
+                    <Button
+                      type="submit"
+                      name="intent"
+                      value={INTENTS.delete}
+                      className="grow bg-red-700 text-white"
+                    >
+                      Delete
+                    </Button>
+                    <Button
+                      type="button"
+                      className="grow bg-indigo-200 text-indigo-700"
+                      onClick={close}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </Form>
               </>
             )}
           </Dialog>
