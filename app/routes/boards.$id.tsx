@@ -12,11 +12,11 @@ import {
   Link,
   Outlet,
   useActionData,
+  useFetcher,
   useLoaderData,
-  useNavigation,
   useRouteLoaderData,
 } from '@remix-run/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components'
 import { z } from 'zod'
 
@@ -114,11 +114,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return redirect('/boards')
   }
 
-  // const submission = await parseWithZod(formData, {
-  //   schema: editBoardSchema,
-  //   async: true,
-  // })
-
   const { name, columns } = submission.value
 
   await prisma.board.update({
@@ -142,7 +137,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     },
   })
 
-  return null
+  return json(submission.reply())
 }
 
 export function useBoardLoaderData() {
@@ -166,6 +161,7 @@ export default function Board() {
   const [modalOpen, setModalOpen] = useState<ModalType | null>(null)
 
   const actionData = useActionData<typeof action>()
+  const fetcher = useFetcher<typeof action>()
 
   const [editForm, fields] = useForm<z.infer<typeof editBoardSchema>>({
     defaultValue: {
@@ -185,8 +181,13 @@ export default function Board() {
   })
   const columnsFieldList = fields.columns.getFieldList()
 
-  const navigation = useNavigation()
-  const isEditingBoard = navigation.formData?.get('intent') === INTENTS.edit
+  const isEditingBoard = fetcher.state !== 'idle'
+
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+      setModalOpen(null)
+    }
+  }, [fetcher.data?.status, fetcher.state])
 
   return (
     <div className="flex flex-grow flex-col border-l border-l-gray-200 bg-gray-50">
@@ -238,7 +239,7 @@ export default function Board() {
         >
           <Dialog>
             <DialogTitle>Edit Board</DialogTitle>
-            <Form
+            <fetcher.Form
               method="post"
               {...getFormProps(editForm)}
               className="flex flex-col gap-6"
@@ -323,7 +324,7 @@ export default function Board() {
               >
                 {isEditingBoard ? 'Saving Changes...' : 'Save Changes'}
               </Button>
-            </Form>
+            </fetcher.Form>
           </Dialog>
         </Modal>
         <Modal
