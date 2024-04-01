@@ -182,7 +182,7 @@ export default function Home() {
               aria-labelledby="create-board-dialog-title"
             >
               {/* We need this button first in the form to be the default onEnter submission */}
-              <Button
+              <button
                 type="submit"
                 className="hidden"
                 name={INTENTS.createBoard.fieldName}
@@ -190,7 +190,7 @@ export default function Home() {
                 tabIndex={-1}
               >
                 Create new board
-              </Button>
+              </button>
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap justify-between gap-2">
                   <Label htmlFor={fields.name.id}>Name</Label>

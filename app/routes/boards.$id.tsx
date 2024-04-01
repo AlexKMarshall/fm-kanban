@@ -18,7 +18,7 @@ import { z } from 'zod'
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 import { Button, IconButton } from '~/ui/button'
-import { Dialog, DialogTitle, Modal } from '~/ui/dialog'
+import { CloseButton, Dialog, DialogTitle, Modal } from '~/ui/dialog'
 import { VerticalEllipsisIcon } from '~/ui/icons/VerticalEllipsisIcon'
 import { ButtonLink } from '~/ui/link'
 
@@ -131,35 +131,29 @@ export default function Board() {
           }}
         >
           <Dialog role="alertdialog">
-            {({ close }) => (
-              <>
-                <DialogTitle>Delete this board?</DialogTitle>
-                <p>
-                  Are you sure you want to delete the ‘Platform Launch’ board?
-                  This action will remove all columns and tasks and cannot be
-                  reversed.
-                </p>
-                <Form method="post">
-                  <div className="flex gap-4">
-                    <Button
-                      type="submit"
-                      name="intent"
-                      value={INTENTS.delete}
-                      className="grow bg-red-700 text-white"
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      type="button"
-                      className="grow bg-indigo-200 text-indigo-700"
-                      onClick={close}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </Form>
-              </>
-            )}
+            <DialogTitle>Delete this board?</DialogTitle>
+            <p>
+              Are you sure you want to delete the ‘Platform Launch’ board? This
+              action will remove all columns and tasks and cannot be reversed.
+            </p>
+            <Form method="post">
+              <div className="flex gap-4">
+                <Button
+                  type="submit"
+                  name="intent"
+                  value={INTENTS.delete}
+                  className="grow bg-red-700 text-white"
+                >
+                  Delete
+                </Button>
+                <CloseButton
+                  type="button"
+                  className="grow bg-indigo-200 text-indigo-700"
+                >
+                  Cancel
+                </CloseButton>
+              </div>
+            </Form>
           </Dialog>
         </Modal>
         <Outlet />

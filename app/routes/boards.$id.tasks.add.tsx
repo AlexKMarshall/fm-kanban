@@ -130,7 +130,7 @@ export default function Board() {
           aria-labelledby="create-task-modal-title"
         >
           {/* We need this button first in the form to be the default onEnter submission */}
-          <Button
+          <button
             type="submit"
             className="hidden"
             name={INTENTS.createTask.fieldName}
@@ -138,7 +138,7 @@ export default function Board() {
             tabIndex={-1}
           >
             Create Task
-          </Button>
+          </button>
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap justify-between gap-2">
               <Label htmlFor={fields.title.id}>Title</Label>

@@ -8,10 +8,12 @@ export const buttonVariants = tv({
 
 export const Button = forwardRef<
   HTMLButtonElement,
-  ComponentPropsWithoutRef<'button'>
+  Omit<ComponentPropsWithoutRef<typeof RACButton>, 'className'> & {
+    className?: string
+  }
 >(function Button({ className, ...props }, ref) {
   return (
-    <button {...props} className={buttonVariants({ className })} ref={ref} />
+    <RACButton {...props} className={buttonVariants({ className })} ref={ref} />
   )
 })
 

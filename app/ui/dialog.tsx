@@ -1,11 +1,14 @@
-import { ComponentPropsWithoutRef } from 'react'
+import { ComponentPropsWithoutRef, useContext } from 'react'
 import {
   Heading,
   ModalOverlay,
+  OverlayTriggerStateContext,
   Dialog as RACDialog,
   Modal as RACModal,
 } from 'react-aria-components'
 import { tv } from 'tailwind-variants'
+
+import { Button } from './button'
 
 export function Modal({
   children,
@@ -56,6 +59,23 @@ export function DialogTitle({
     >
       {children}
     </Heading>
+  )
+}
+
+export function CloseButton({
+  onPress,
+  ...props
+}: ComponentPropsWithoutRef<typeof Button>) {
+  const state = useContext(OverlayTriggerStateContext)
+
+  return (
+    <Button
+      {...props}
+      onPress={(event) => {
+        onPress?.(event)
+        state.close()
+      }}
+    />
   )
 }
 
