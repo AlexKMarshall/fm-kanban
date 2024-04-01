@@ -5,11 +5,14 @@ import {
   useLoaderData,
   useRouteLoaderData,
 } from '@remix-run/react'
+import { useState } from 'react'
+import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
-import { IconButton } from '~/ui/button'
+import { Button, IconButton } from '~/ui/button'
+import { Dialog, DialogTitle, Modal } from '~/ui/dialog'
 import { VerticalEllipsisIcon } from '~/ui/icons/VerticalEllipsisIcon'
 import { ButtonLink } from '~/ui/link'
 
@@ -46,6 +49,8 @@ export default function Board() {
     tasks: board.tasks.filter((task) => task.columnId === column.id),
   }))
 
+  const [modalOpen, setModalOpen] = useState<'delete' | null>(null)
+
   return (
     <div className="flex flex-grow flex-col border-l border-l-gray-200 bg-gray-50">
       <div className="flex items-center gap-6 border-b border-b-gray-200 bg-white p-4">
@@ -57,9 +62,64 @@ export default function Board() {
         >
           + Add New Task
         </ButtonLink>
-        <IconButton>
-          <VerticalEllipsisIcon />
-        </IconButton>
+        <MenuTrigger>
+          <IconButton>
+            <VerticalEllipsisIcon />
+          </IconButton>
+          <Popover containerPadding={24} offset={24}>
+            <Menu
+              onAction={(key) => {
+                if (key === 'delete') {
+                  setModalOpen('delete')
+                }
+              }}
+              className="flex min-w-48 flex-col gap-4 rounded-lg bg-white p-4"
+            >
+              <MenuItem
+                id="edit"
+                className="cursor-pointer rounded text-sm text-gray-500 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-indigo-700"
+              >
+                Edit Board
+              </MenuItem>
+              <MenuItem
+                id="delete"
+                className="cursor-pointer rounded text-sm text-red-700 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-red-700"
+              >
+                Delete Board
+              </MenuItem>
+            </Menu>
+          </Popover>
+        </MenuTrigger>
+        <Modal
+          isOpen={modalOpen === 'delete'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setModalOpen(null)
+            }
+          }}
+        >
+          <Dialog>
+            {({ close }) => (
+              <>
+                <DialogTitle>Delete this board?</DialogTitle>
+                <p>
+                  Are you sure you want to delete the ‘Platform Launch’ board?
+                  This action will remove all columns and tasks and cannot be
+                  reversed.
+                </p>
+                <div className="flex gap-4">
+                  <Button className="grow bg-red-700 text-white">Delete</Button>
+                  <Button
+                    className="grow bg-indigo-200 text-indigo-700"
+                    onClick={close}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            )}
+          </Dialog>
+        </Modal>
         <Outlet />
       </div>
       {columnsWithTasks.length ? (

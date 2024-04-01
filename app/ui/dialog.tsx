@@ -18,7 +18,7 @@ export function Modal({
     <ModalOverlay
       {...props}
       className={tv({
-        base: 'fixed inset-0 z-50 flex items-center justify-center',
+        base: 'fixed inset-0 z-50 flex items-center justify-center bg-gray-700/50',
       })({ className })}
     >
       <RACModal>{children}</RACModal>
