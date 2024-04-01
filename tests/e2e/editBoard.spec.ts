@@ -1,5 +1,7 @@
 import { faker } from '@faker-js/faker'
 
+import { makeColumn, makeTask } from 'tests/factories/board'
+
 import { expect, test } from '../playwright-utils'
 
 test('edit board title', async ({ page, createBoard }) => {
@@ -24,4 +26,51 @@ test('edit board title', async ({ page, createBoard }) => {
   await expect(page.getByRole('link', { name: newName })).toBeVisible()
   await expect(page.getByRole('heading', { name: newName })).toBeVisible()
   await expect(page.getByRole('link', { name: board.name })).toBeHidden()
+})
+
+test('update existing column name', async ({
+  page,
+  createBoard,
+  createTasks,
+}) => {
+  const column = makeColumn()
+  const board = await createBoard({ columns: [column] })
+  const task = makeTask()
+  await createTasks({ boardId: board.id, columnId: column.id, ...task })
+
+  await page.goto('/')
+  await page.getByRole('link', { name: board.name }).click()
+
+  // Task is in the column with the original name
+  await expect(
+    page
+      .getByRole('listitem')
+      .filter({ has: page.getByRole('heading', { name: column.name }) })
+      .getByRole('listitem')
+      .filter({ has: page.getByRole('heading', { name: task.title }) }),
+  ).toBeVisible()
+
+  await page.getByRole('button', { name: /board menu/i }).click()
+  await page.getByRole('menuitem', { name: /edit board/i }).click()
+
+  const dialog = page.getByRole('dialog', { name: /edit board/i })
+  await expect(dialog).toBeVisible()
+
+  // Update the name
+  const newColumnName = faker.lorem.words()
+  await dialog
+    .getByRole('textbox', { name: /column name/i })
+    .fill(newColumnName)
+  await dialog.getByRole('button', { name: /save changes/i }).click()
+
+  await expect(dialog).toBeHidden()
+
+  // Task is still visible, in column with new name
+  await expect(
+    page
+      .getByRole('listitem')
+      .filter({ has: page.getByRole('heading', { name: newColumnName }) })
+      .getByRole('listitem')
+      .filter({ has: page.getByRole('heading', { name: task.title }) }),
+  ).toBeVisible()
 })
