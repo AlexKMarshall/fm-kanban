@@ -149,7 +149,7 @@ export default function Task() {
           <div className="flex items-center justify-between gap-4">
             <DialogTitle id={itemTitleId}>{task.title}</DialogTitle>
             <MenuTrigger>
-              <IconButton aria-label="Board menu">
+              <IconButton aria-label="Task menu">
                 <VerticalEllipsisIcon />
               </IconButton>
               <Popover placement="bottom" offset={24}>
@@ -223,7 +223,7 @@ export default function Task() {
           }
         }}
       >
-        <Dialog>
+        <Dialog role="alertdialog">
           <DialogTitle className="text-red-700">Delete this task?</DialogTitle>
           <p>
             Are you sure you want to delete the &lsquo;{task.title}&rsquo; task
