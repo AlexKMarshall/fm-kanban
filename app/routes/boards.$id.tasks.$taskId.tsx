@@ -1,11 +1,19 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, json } from '@remix-run/node'
-import { useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
-import { useId } from 'react'
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  json,
+  redirect,
+} from '@remix-run/node'
+import { Form, useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
+import { useId, useState } from 'react'
+import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
-import { Dialog, DialogTitle, Modal } from '~/ui/dialog'
+import { Button, IconButton } from '~/ui/button'
+import { CloseButton, Dialog, DialogTitle, Modal } from '~/ui/dialog'
+import { VerticalEllipsisIcon } from '~/ui/icons/VerticalEllipsisIcon'
 import { Label } from '~/ui/label'
 
 const paramsSchema = z.object({
@@ -41,6 +49,10 @@ const INTENTS = {
     value: 'updateColumn',
     fieldName: 'intent',
   },
+  deleteTask: {
+    value: 'deleteTask',
+    fieldName: 'intent',
+  },
 } as const
 
 const updateSubtaskFormSchema = z.object({
@@ -52,14 +64,18 @@ const updateColumnFormSchema = z.object({
   intent: z.literal(INTENTS.updateColumn.value),
   columnId: z.string(),
 })
+const deleteTaskFormSchema = z.object({
+  intent: z.literal(INTENTS.deleteTask.value),
+})
 
 const actionFormSchema = z.union([
   updateSubtaskFormSchema,
   updateColumnFormSchema,
+  deleteTaskFormSchema,
 ])
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { taskId } = paramsSchema.parse(params)
+  const { taskId, id: boardId } = paramsSchema.parse(params)
   const accountId = await requireAuthCookie(request)
   const formData = await request.formData()
   const parsed = actionFormSchema.parse(Object.fromEntries(formData))
@@ -78,14 +94,30 @@ export async function action({ request, params }: ActionFunctionArgs) {
       await prisma.task.update({
         where: {
           id: taskId,
+          Board: { ownerId: accountId },
         },
         data: {
           columnId: parsed.columnId,
         },
       })
       return null
+    case INTENTS.deleteTask.value:
+      await prisma.task.delete({
+        where: {
+          id: taskId,
+          Board: { ownerId: accountId },
+        },
+      })
+      return redirect(`/boards/${boardId}`)
   }
 }
+
+const modalType = {
+  view: 'view',
+  edit: 'edit',
+  delete: 'delete',
+} as const
+type ModalType = (typeof modalType)[keyof typeof modalType]
 
 export default function Task() {
   const { task, columns } = useLoaderData<typeof loader>()
@@ -100,62 +132,121 @@ export default function Task() {
 
   const fetcher = useFetcher()
 
+  const [modal, setModal] = useState<ModalType | null>('view')
+
   return (
-    <Modal
-      isDismissable
-      isOpen
-      onOpenChange={(isOpen) => {
-        if (!isOpen) {
-          navigate(-1)
-        }
-      }}
-    >
-      <Dialog>
-        <DialogTitle id={itemTitleId}>{task.title}</DialogTitle>
-        {task.description ? (
-          <p className="text-sm text-gray-500">{task.description}</p>
-        ) : null}
-        {task.subtasks.length > 0 ? (
-          <div className="flex flex-col gap-4">
-            <h3 className="text-xs font-bold text-gray-500">
-              Subtasks ({completedSubtaskCount} of {totalSubtaskCount})
-            </h3>
-            <ul className="flex flex-col gap-2">
-              {task.subtasks.map((subtask) => (
-                <Subtask
-                  key={subtask.id}
-                  subtaskId={subtask.id}
-                  title={subtask.title}
-                  isCompleted={subtask.isCompleted}
-                />
-              ))}
-            </ul>
+    <>
+      <Modal
+        isDismissable
+        isOpen={modal === 'view'}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            navigate(-1)
+          }
+        }}
+      >
+        <Dialog>
+          <div className="flex items-center justify-between gap-4">
+            <DialogTitle id={itemTitleId}>{task.title}</DialogTitle>
+            <MenuTrigger>
+              <IconButton aria-label="Task menu">
+                <VerticalEllipsisIcon />
+              </IconButton>
+              <Popover placement="bottom" offset={24}>
+                <Menu
+                  onAction={(key) => {
+                    if (Object.values(modalType).includes(key as ModalType)) {
+                      setModal(key as ModalType)
+                    }
+                  }}
+                  className="flex min-w-48 flex-col gap-4 rounded-lg bg-white p-4"
+                >
+                  <MenuItem
+                    id={modalType.delete}
+                    className="cursor-pointer rounded text-sm text-red-700 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-red-700"
+                  >
+                    Delete Task
+                  </MenuItem>
+                </Menu>
+              </Popover>
+            </MenuTrigger>
           </div>
-        ) : null}
-        <fetcher.Form
-          method="post"
-          onChange={(event) => fetcher.submit(event.currentTarget)}
-        >
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap justify-between gap-2">
-              <Label htmlFor="column">Current Status</Label>
+          {task.description ? (
+            <p className="text-sm text-gray-500">{task.description}</p>
+          ) : null}
+          {task.subtasks.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              <h3 className="text-xs font-bold text-gray-500">
+                Subtasks ({completedSubtaskCount} of {totalSubtaskCount})
+              </h3>
+              <ul className="flex flex-col gap-2">
+                {task.subtasks.map((subtask) => (
+                  <Subtask
+                    key={subtask.id}
+                    subtaskId={subtask.id}
+                    title={subtask.title}
+                    isCompleted={subtask.isCompleted}
+                  />
+                ))}
+              </ul>
             </div>
-            <select name="columnId" id="column" defaultValue={task.Column.id}>
-              {columns.map((column) => (
-                <option key={column.id} value={column.id}>
-                  {column.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <input
-            type="hidden"
-            name={INTENTS.updateColumn.fieldName}
-            value={INTENTS.updateColumn.value}
-          />
-        </fetcher.Form>
-      </Dialog>
-    </Modal>
+          ) : null}
+          <fetcher.Form
+            method="post"
+            onChange={(event) => fetcher.submit(event.currentTarget)}
+          >
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap justify-between gap-2">
+                <Label htmlFor="column">Current Status</Label>
+              </div>
+              <select name="columnId" id="column" defaultValue={task.Column.id}>
+                {columns.map((column) => (
+                  <option key={column.id} value={column.id}>
+                    {column.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <input
+              type="hidden"
+              name={INTENTS.updateColumn.fieldName}
+              value={INTENTS.updateColumn.value}
+            />
+          </fetcher.Form>
+        </Dialog>
+      </Modal>
+      <Modal
+        isOpen={modal === 'delete'}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setModal('view')
+          }
+        }}
+      >
+        <Dialog role="alertdialog">
+          <DialogTitle className="text-red-700">Delete this task?</DialogTitle>
+          <p>
+            Are you sure you want to delete the &lsquo;{task.title}&rsquo; task
+            and its subtasks? This action cannot be reversed.
+          </p>
+          <Form method="post">
+            <div className="flex gap-4">
+              <Button
+                type="submit"
+                name="intent"
+                value={INTENTS.deleteTask.value}
+                className="grow bg-red-700 text-white"
+              >
+                Delete
+              </Button>
+              <CloseButton className="grow bg-indigo-200 text-indigo-700">
+                Cancel
+              </CloseButton>
+            </div>
+          </Form>
+        </Dialog>
+      </Modal>
+    </>
   )
 }
 
