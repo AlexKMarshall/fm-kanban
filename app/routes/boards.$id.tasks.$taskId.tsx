@@ -1,4 +1,5 @@
-import { parseWithZod } from '@conform-to/zod'
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -6,7 +7,7 @@ import {
   redirect,
 } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components'
 import { z } from 'zod'
 
@@ -14,7 +15,9 @@ import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 import { Button, IconButton } from '~/ui/button'
 import { CloseButton, Dialog, DialogTitle, Modal } from '~/ui/dialog'
+import { FieldError } from '~/ui/field-error'
 import { VerticalEllipsisIcon } from '~/ui/icons/VerticalEllipsisIcon'
+import { Input } from '~/ui/input'
 import { Label } from '~/ui/label'
 
 const paramsSchema = z.object({
@@ -75,9 +78,9 @@ const deleteTaskFormSchema = z.object({
 const editTaskFormSchema = z.object({
   intent: z.literal(INTENTS.editTask.value),
   title: z.string({ required_error: "Can't be empty" }),
-  description: z.string().optional(),
-  // TODO: validate the column id
-  columnId: z.string({ required_error: 'Select a status' }),
+  // description: z.string().optional(),
+  // // TODO: validate the column id
+  // columnId: z.string({ required_error: 'Select a status' }),
 })
 
 const actionFormSchema = z.union([
@@ -121,6 +124,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
         },
       })
       return json(submission.reply())
+    case INTENTS.editTask.value:
+      await prisma.task.update({
+        where: {
+          id: taskId,
+          Board: { ownerId: accountId },
+        },
+        data: {
+          title: submission.value.title,
+        },
+      })
+      return json(submission.reply())
     case INTENTS.deleteTask.value:
       await prisma.task.delete({
         where: {
@@ -150,9 +164,30 @@ export default function Task() {
   ).length
   const totalSubtaskCount = task.subtasks.length
 
-  const fetcher = useFetcher()
+  const fetcher = useFetcher<typeof action>()
 
   const [modal, setModal] = useState<ModalType | null>('view')
+
+  const [editForm, fields] = useForm<z.infer<typeof editTaskFormSchema>>({
+    defaultValue: {
+      title: task.title,
+      // description: task.description,
+      // columnId: task.Column.id,
+    },
+    shouldValidate: 'onBlur',
+    shouldRevalidate: 'onInput',
+    lastResult: fetcher.data,
+    constraint: getZodConstraint(editTaskFormSchema),
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: editTaskFormSchema })
+    },
+  })
+
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+      setModal('view')
+    }
+  }, [fetcher.data?.status, fetcher.state])
 
   return (
     <>
@@ -183,7 +218,7 @@ export default function Task() {
                 >
                   <MenuItem
                     id={modalType.edit}
-                    className="cursor-pointer rounded text-sm text-red-700 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-red-700"
+                    className="cursor-pointer rounded text-sm text-gray-500 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-red-700"
                   >
                     Edit Task
                   </MenuItem>
@@ -242,6 +277,7 @@ export default function Task() {
         </Dialog>
       </Modal>
       <Modal
+        isDismissable
         isOpen={modal === 'edit'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
@@ -251,6 +287,45 @@ export default function Task() {
       >
         <Dialog>
           <DialogTitle>Edit Task</DialogTitle>
+          <fetcher.Form
+            method="post"
+            {...getFormProps(editForm)}
+            className="flex flex-col gap-6"
+          >
+            {/* We need this button first in the form to be the default onEnter submission */}
+            <button
+              type="submit"
+              className="hidden"
+              name={INTENTS.editTask.fieldName}
+              value={INTENTS.editTask.value}
+              tabIndex={-1}
+            >
+              Save Changes
+            </button>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap justify-between gap-2">
+                <Label htmlFor={fields.title.id}>Title</Label>
+                <FieldError
+                  id={fields.title.errorId}
+                  aria-live="polite"
+                  errors={fields.title.errors}
+                />
+              </div>
+              <Input
+                {...getInputProps(fields.title, { type: 'text' })}
+                placeholder="e.g. Take coffee break"
+                autoComplete="off"
+              />
+            </div>
+            <Button
+              type="submit"
+              name={INTENTS.editTask.fieldName}
+              value={INTENTS.editTask.value}
+              className="bg-indigo-700 text-white"
+            >
+              {fetcher.state === 'idle' ? 'Save Changes' : 'Saving Changes...'}
+            </Button>
+          </fetcher.Form>
         </Dialog>
       </Modal>
       <Modal
