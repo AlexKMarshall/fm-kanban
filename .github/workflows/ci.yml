@@ -93,12 +93,12 @@ jobs:
           retention-days: 30
 
   visual-regression:
-    env:
-      CHROMATIC_PROJECT_TOKEN: ${{secrets.CHROMATIC_PROJECT_TOKEN}}
     name: 'Run visual regression'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -127,5 +127,8 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-      - name: Run chromatic
-        run: pnpm dlx turbo run chromatic
+
+      - name: Run Chromatic
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
