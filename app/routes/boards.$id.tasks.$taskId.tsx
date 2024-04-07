@@ -1,3 +1,4 @@
+import { parseWithZod } from '@conform-to/zod'
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -49,6 +50,10 @@ const INTENTS = {
     value: 'updateColumn',
     fieldName: 'intent',
   },
+  editTask: {
+    value: 'editTask',
+    fieldName: 'intent',
+  },
   deleteTask: {
     value: 'deleteTask',
     fieldName: 'intent',
@@ -67,10 +72,18 @@ const updateColumnFormSchema = z.object({
 const deleteTaskFormSchema = z.object({
   intent: z.literal(INTENTS.deleteTask.value),
 })
+const editTaskFormSchema = z.object({
+  intent: z.literal(INTENTS.editTask.value),
+  title: z.string({ required_error: "Can't be empty" }),
+  description: z.string().optional(),
+  // TODO: validate the column id
+  columnId: z.string({ required_error: 'Select a status' }),
+})
 
 const actionFormSchema = z.union([
   updateSubtaskFormSchema,
   updateColumnFormSchema,
+  editTaskFormSchema,
   deleteTaskFormSchema,
 ])
 
@@ -78,18 +91,25 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const { taskId, id: boardId } = paramsSchema.parse(params)
   const accountId = await requireAuthCookie(request)
   const formData = await request.formData()
-  const parsed = actionFormSchema.parse(Object.fromEntries(formData))
+  const submission = await parseWithZod(formData, {
+    schema: actionFormSchema,
+    async: true,
+  })
 
-  switch (parsed.intent) {
+  if (submission.status !== 'success') {
+    return json(submission.reply(), { status: 400 })
+  }
+
+  switch (submission.value.intent) {
     case INTENTS.updateSubtask.value:
       await prisma.subtask.update({
         where: {
-          id: parsed.subtaskId,
+          id: submission.value.subtaskId,
           Task: { Board: { ownerId: accountId } },
         },
-        data: { isCompleted: parsed.isCompleted },
+        data: { isCompleted: submission.value.isCompleted },
       })
-      return null
+      return json(submission.reply())
     case INTENTS.updateColumn.value:
       await prisma.task.update({
         where: {
@@ -97,10 +117,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
           Board: { ownerId: accountId },
         },
         data: {
-          columnId: parsed.columnId,
+          columnId: submission.value.columnId,
         },
       })
-      return null
+      return json(submission.reply())
     case INTENTS.deleteTask.value:
       await prisma.task.delete({
         where: {
@@ -162,6 +182,12 @@ export default function Task() {
                   className="flex min-w-48 flex-col gap-4 rounded-lg bg-white p-4"
                 >
                   <MenuItem
+                    id={modalType.edit}
+                    className="cursor-pointer rounded text-sm text-red-700 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-red-700"
+                  >
+                    Edit Task
+                  </MenuItem>
+                  <MenuItem
                     id={modalType.delete}
                     className="cursor-pointer rounded text-sm text-red-700 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-red-700"
                   >
@@ -213,6 +239,18 @@ export default function Task() {
               value={INTENTS.updateColumn.value}
             />
           </fetcher.Form>
+        </Dialog>
+      </Modal>
+      <Modal
+        isOpen={modal === 'edit'}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setModal('view')
+          }
+        }}
+      >
+        <Dialog>
+          <DialogTitle>Edit Task</DialogTitle>
         </Dialog>
       </Modal>
       <Modal
