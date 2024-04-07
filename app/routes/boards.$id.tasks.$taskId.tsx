@@ -1,6 +1,7 @@
 import {
   getFormProps,
   getInputProps,
+  getSelectProps,
   getTextareaProps,
   useForm,
 } from '@conform-to/react'
@@ -84,8 +85,8 @@ const editTaskFormSchema = z.object({
   intent: z.literal(INTENTS.editTask.value),
   title: z.string({ required_error: "Can't be empty" }),
   description: z.string().optional(),
-  // // TODO: validate the column id
-  // columnId: z.string({ required_error: 'Select a status' }),
+  // TODO: validate the column id
+  columnId: z.string({ required_error: 'Select a status' }),
 })
 
 const actionFormSchema = z.union([
@@ -138,6 +139,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         data: {
           title: submission.value.title,
           description: submission.value.description,
+          columnId: submission.value.columnId,
         },
       })
       return json(submission.reply())
@@ -177,8 +179,8 @@ export default function Task() {
   const [editForm, fields] = useForm<z.infer<typeof editTaskFormSchema>>({
     defaultValue: {
       title: task.title,
-      // description: task.description,
-      // columnId: task.Column.id,
+      description: task.description,
+      columnId: task.Column.id,
     },
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
@@ -337,6 +339,23 @@ export default function Task() {
                 placeholder="e.g. It’s always good to take a break. This 15 minute break will recharge the batteries a little."
                 autoComplete="off"
               />
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap justify-between gap-2">
+                <Label htmlFor={fields.columnId.id}>Status</Label>
+                <FieldError
+                  id={fields.columnId.errorId}
+                  aria-live="polite"
+                  errors={fields.columnId.errors}
+                />
+              </div>
+              <select {...getSelectProps(fields.columnId)}>
+                {columns.map((column) => (
+                  <option key={column.id} value={column.id}>
+                    {column.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <Button
               type="submit"

@@ -5,10 +5,11 @@ import { makeColumn, makeTask } from 'tests/factories/board'
 import { expect, test } from '../playwright-utils'
 
 test('edit task', async ({ page, createBoard, createTasks }) => {
-  const column = makeColumn()
-  const board = await createBoard({ columns: [column] })
+  const column1 = makeColumn()
+  const column2 = makeColumn()
+  const board = await createBoard({ columns: [column1, column2] })
   const task = makeTask()
-  await createTasks({ boardId: board.id, columnId: column.id, ...task })
+  await createTasks({ boardId: board.id, columnId: column1.id, ...task })
 
   await page.goto('/')
   await page.getByRole('link', { name: board.name }).click()
@@ -36,12 +37,18 @@ test('edit task', async ({ page, createBoard, createTasks }) => {
   const descriptionInput = taskEditDialog.getByRole('textbox', {
     name: /description/i,
   })
+  // Ideally we'd also verify that the status select has the correct value
+  // But playwright currently doesn't let you check by the visible text of an option, only its value
+  // And we don't want to check the column id directly as it's an implementation detail
 
   // Make Edits
   const newTitle = faker.lorem.words()
   await titleInput.fill(newTitle)
   const newDescription = faker.lorem.paragraph()
   await descriptionInput.fill(newDescription)
+  await taskEditDialog
+    .getByRole('combobox', { name: /status/i })
+    .selectOption(column2.name)
 
   // Save the changes
   await taskEditDialog.getByRole('button', { name: /save changes/i }).click()
@@ -59,4 +66,20 @@ test('edit task', async ({ page, createBoard, createTasks }) => {
   ).toBeVisible()
   // The task description is updated
   await expect(taskViewDialog.getByText(newDescription)).toBeVisible()
+  // The task status is updated
+  // Ideally we'd also verify that the status select has the correct value
+  // But playwright currently doesn't let you check by the visible text of an option, only its value
+  // And we don't want to check the column id directly as it's an implementation detail
+
+  // Close the task view dialog, so we can check the card is in the updated and in the new column
+  await page.keyboard.press('Escape')
+
+  // The task card is now in the new column
+  const columnTwoElement = page
+    .getByRole('listitem')
+    .filter({ has: page.getByRole('heading', { name: column2.name }) })
+  const card = columnTwoElement
+    .getByRole('listitem')
+    .filter({ has: page.getByRole('heading', { name: newTitle }) })
+  await expect(card).toBeVisible()
 })
