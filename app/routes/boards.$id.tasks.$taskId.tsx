@@ -1,3 +1,14 @@
+import { randomUUID } from 'crypto'
+
+import {
+  getFormProps,
+  getInputProps,
+  getSelectProps,
+  getTextareaProps,
+  useForm,
+} from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { Cross2Icon } from '@radix-ui/react-icons'
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -5,7 +16,7 @@ import {
   redirect,
 } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components'
 import { z } from 'zod'
 
@@ -13,8 +24,10 @@ import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 import { Button, IconButton } from '~/ui/button'
 import { CloseButton, Dialog, DialogTitle, Modal } from '~/ui/dialog'
+import { FieldError } from '~/ui/field-error'
 import { VerticalEllipsisIcon } from '~/ui/icons/VerticalEllipsisIcon'
-import { Label } from '~/ui/label'
+import { Input } from '~/ui/input'
+import { Label, Legend } from '~/ui/label'
 
 const paramsSchema = z.object({
   id: z.string(),
@@ -49,6 +62,10 @@ const INTENTS = {
     value: 'updateColumn',
     fieldName: 'intent',
   },
+  editTask: {
+    value: 'editTask',
+    fieldName: 'intent',
+  },
   deleteTask: {
     value: 'deleteTask',
     fieldName: 'intent',
@@ -67,10 +84,42 @@ const updateColumnFormSchema = z.object({
 const deleteTaskFormSchema = z.object({
   intent: z.literal(INTENTS.deleteTask.value),
 })
+const editTaskFormSchema = z.object({
+  intent: z.literal(INTENTS.editTask.value),
+  title: z.string({ required_error: "Can't be empty" }),
+  description: z.string().optional(),
+  // TODO: validate the column id
+  columnId: z.string({ required_error: 'Select a status' }),
+  subtasks: z
+    .array(
+      z.object({
+        title: z.string().optional(),
+        id: z.string().optional(),
+      }),
+    )
+    .superRefine((subtasks, ctx) => {
+      subtasks.forEach((subtask, index) => {
+        const isLastSubtask = index === subtasks.length - 1
+        if (!subtask.title && !isLastSubtask) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Can't be empty",
+            path: [index, 'title'],
+          })
+        }
+      })
+    })
+    .transform((subtasks) =>
+      subtasks.filter((subtask): subtask is { title: string; id?: string } =>
+        Boolean(subtask.title),
+      ),
+    ),
+})
 
 const actionFormSchema = z.union([
   updateSubtaskFormSchema,
   updateColumnFormSchema,
+  editTaskFormSchema,
   deleteTaskFormSchema,
 ])
 
@@ -78,18 +127,25 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const { taskId, id: boardId } = paramsSchema.parse(params)
   const accountId = await requireAuthCookie(request)
   const formData = await request.formData()
-  const parsed = actionFormSchema.parse(Object.fromEntries(formData))
+  const submission = await parseWithZod(formData, {
+    schema: actionFormSchema,
+    async: true,
+  })
 
-  switch (parsed.intent) {
+  if (submission.status !== 'success') {
+    return json(submission.reply(), { status: 400 })
+  }
+
+  switch (submission.value.intent) {
     case INTENTS.updateSubtask.value:
       await prisma.subtask.update({
         where: {
-          id: parsed.subtaskId,
+          id: submission.value.subtaskId,
           Task: { Board: { ownerId: accountId } },
         },
-        data: { isCompleted: parsed.isCompleted },
+        data: { isCompleted: submission.value.isCompleted },
       })
-      return null
+      return json(submission.reply())
     case INTENTS.updateColumn.value:
       await prisma.task.update({
         where: {
@@ -97,10 +153,37 @@ export async function action({ request, params }: ActionFunctionArgs) {
           Board: { ownerId: accountId },
         },
         data: {
-          columnId: parsed.columnId,
+          columnId: submission.value.columnId,
         },
       })
-      return null
+      return json(submission.reply())
+    case INTENTS.editTask.value:
+      await prisma.task.update({
+        where: {
+          id: taskId,
+          Board: { ownerId: accountId },
+        },
+        data: {
+          title: submission.value.title,
+          description: submission.value.description,
+          columnId: submission.value.columnId,
+          subtasks: {
+            deleteMany: {
+              id: {
+                notIn: submission.value.subtasks
+                  .map((subtask) => subtask.id)
+                  .filter((id): id is string => id !== undefined),
+              },
+            },
+            upsert: submission.value.subtasks.map(({ id, title }) => ({
+              where: { id: id ?? randomUUID() },
+              create: { title },
+              update: { title },
+            })),
+          },
+        },
+      })
+      return json(submission.reply())
     case INTENTS.deleteTask.value:
       await prisma.task.delete({
         where: {
@@ -130,9 +213,36 @@ export default function Task() {
   ).length
   const totalSubtaskCount = task.subtasks.length
 
-  const fetcher = useFetcher()
+  const fetcher = useFetcher<typeof action>()
 
   const [modal, setModal] = useState<ModalType | null>('view')
+
+  const [editForm, fields] = useForm<z.infer<typeof editTaskFormSchema>>({
+    defaultValue: {
+      title: task.title,
+      description: task.description,
+      columnId: task.Column.id,
+      subtasks: task.subtasks.map((subtask) => ({
+        title: subtask.title,
+        id: subtask.id,
+      })),
+    },
+    shouldValidate: 'onBlur',
+    shouldRevalidate: 'onInput',
+    lastResult: fetcher.data,
+    constraint: getZodConstraint(editTaskFormSchema),
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: editTaskFormSchema })
+    },
+  })
+
+  const subtasksFieldList = fields.subtasks.getFieldList()
+
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+      setModal('view')
+    }
+  }, [fetcher.data?.status, fetcher.state])
 
   return (
     <>
@@ -161,6 +271,12 @@ export default function Task() {
                   }}
                   className="flex min-w-48 flex-col gap-4 rounded-lg bg-white p-4"
                 >
+                  <MenuItem
+                    id={modalType.edit}
+                    className="cursor-pointer rounded text-sm text-gray-500 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-red-700"
+                  >
+                    Edit Task
+                  </MenuItem>
                   <MenuItem
                     id={modalType.delete}
                     className="cursor-pointer rounded text-sm text-red-700 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-red-700"
@@ -212,6 +328,136 @@ export default function Task() {
               name={INTENTS.updateColumn.fieldName}
               value={INTENTS.updateColumn.value}
             />
+          </fetcher.Form>
+        </Dialog>
+      </Modal>
+      <Modal
+        isDismissable
+        isOpen={modal === 'edit'}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setModal('view')
+          }
+        }}
+      >
+        <Dialog>
+          <DialogTitle>Edit Task</DialogTitle>
+          <fetcher.Form
+            method="post"
+            {...getFormProps(editForm)}
+            className="flex flex-col gap-6"
+          >
+            {/* We need this button first in the form to be the default onEnter submission */}
+            <button
+              type="submit"
+              className="hidden"
+              name={INTENTS.editTask.fieldName}
+              value={INTENTS.editTask.value}
+              tabIndex={-1}
+            >
+              Save Changes
+            </button>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap justify-between gap-2">
+                <Label htmlFor={fields.title.id}>Title</Label>
+                <FieldError
+                  id={fields.title.errorId}
+                  aria-live="polite"
+                  errors={fields.title.errors}
+                />
+              </div>
+              <Input
+                {...getInputProps(fields.title, { type: 'text' })}
+                placeholder="e.g. Take coffee break"
+                autoComplete="off"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap justify-between gap-2">
+                <Label htmlFor={fields.description.id}>Description</Label>
+                <FieldError
+                  id={fields.description.errorId}
+                  aria-live="polite"
+                  errors={fields.description.errors}
+                />
+              </div>
+              <textarea
+                {...getTextareaProps(fields.description)}
+                placeholder="e.g. It’s always good to take a break. This 15 minute break will recharge the batteries a little."
+                autoComplete="off"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap justify-between gap-2">
+                <Label htmlFor={fields.columnId.id}>Status</Label>
+                <FieldError
+                  id={fields.columnId.errorId}
+                  aria-live="polite"
+                  errors={fields.columnId.errors}
+                />
+              </div>
+              <select {...getSelectProps(fields.columnId)}>
+                {columns.map((column) => (
+                  <option key={column.id} value={column.id}>
+                    {column.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <fieldset className="flex flex-col gap-3">
+              <Legend>Subtasks</Legend>
+              <ul className="flex flex-col gap-3">
+                {subtasksFieldList.map((subtask, index) => {
+                  const { title, id } = subtask.getFieldset()
+                  return (
+                    <li key={subtask.key} className="flex flex-col gap-2">
+                      <input {...getInputProps(id, { type: 'hidden' })} />
+                      <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
+                        <Input
+                          focusOnMount={index !== 0}
+                          aria-label="Subtask title"
+                          {...getInputProps(title, { type: 'text' })}
+                          className="w-0 flex-1"
+                        />
+                        <IconButton
+                          {...editForm.remove.getButtonProps({
+                            name: fields.subtasks.name,
+                            index,
+                          })}
+                          type="submit"
+                          aria-label="Remove"
+                          className="self-center"
+                        >
+                          <Cross2Icon aria-hidden />
+                        </IconButton>
+                      </div>
+                      <FieldError
+                        id={subtask.errorId}
+                        aria-live="polite"
+                        errors={subtask.errors}
+                      />
+                    </li>
+                  )
+                })}
+              </ul>
+              <Button
+                {...editForm.insert.getButtonProps({
+                  name: fields.subtasks.name,
+                })}
+                className="bg-indigo-700/10 text-indigo-700"
+                type="submit"
+              >
+                + Add New Subtask
+              </Button>
+            </fieldset>
+            <Button
+              type="submit"
+              name={INTENTS.editTask.fieldName}
+              value={INTENTS.editTask.value}
+              className="bg-indigo-700 text-white"
+            >
+              {fetcher.state === 'idle' ? 'Save Changes' : 'Saving Changes...'}
+            </Button>
           </fetcher.Form>
         </Dialog>
       </Modal>
