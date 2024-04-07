@@ -1,5 +1,5 @@
 {
   "$schema": "https://unpkg.com/knip@4/schema.json",
-  "ignore": ["postcss.config.mjs"],
-  "ignoreDependencies": ["isbot"]
+  "ignore": ["postcss.config.mjs", "storybook-vite.config.ts"],
+  "ignoreDependencies": ["isbot", "@storybook/blocks"]
 }

@@ -21,7 +21,7 @@ module.exports = {
   },
 
   // Base config
-  extends: ['eslint:recommended', 'prettier'],
+  extends: ['eslint:recommended', 'prettier', 'plugin:storybook/recommended'],
 
   rules: {
     // warn on console logs, but not console errors or warnings
