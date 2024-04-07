@@ -112,6 +112,9 @@ devDependencies:
   '@typescript-eslint/parser':
     specifier: 7.5.0
     version: 7.5.0(eslint@8.57.0)(typescript@5.4.4)
+  chromatic:
+    specifier: ^11.3.0
+    version: 11.3.0
   dotenv:
     specifier: 16.4.5
     version: 16.4.5

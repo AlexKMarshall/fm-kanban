@@ -20,7 +20,8 @@
     "test:e2e": "playwright test",
     "test:e2e:dev": "playwright test --ui",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "chromatic": "npx chromatic --project-token=chpt_8c43dab1441f64a"
   },
   "dependencies": {
     "@conform-to/react": "1.0.6",
@@ -60,6 +61,7 @@
     "@types/set-cookie-parser": "2.4.7",
     "@typescript-eslint/eslint-plugin": "7.5.0",
     "@typescript-eslint/parser": "7.5.0",
+    "chromatic": "^11.3.0",
     "dotenv": "16.4.5",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
@@ -92,5 +94,6 @@
       "turbo lint -- --fix",
       "turbo format -- --write"
     ]
-  }
+  },
+  "version": ""
 }
