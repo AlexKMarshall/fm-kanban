@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 
-import { makeColumn, makeTask } from 'tests/factories/board'
+import { makeColumn, makeSubtask, makeTask } from 'tests/factories/board'
 
 import { expect, test } from '../playwright-utils'
 
@@ -82,4 +82,121 @@ test('edit task', async ({ page, createBoard, createTasks }) => {
     .getByRole('listitem')
     .filter({ has: page.getByRole('heading', { name: newTitle }) })
   await expect(card).toBeVisible()
+})
+
+test('add a subtask', async ({ page, createBoard, createTasks }) => {
+  const column = makeColumn()
+  const board = await createBoard({ columns: [column] })
+  const task = makeTask()
+  await createTasks({ boardId: board.id, columnId: column.id, ...task })
+
+  await page.goto('/')
+  await page.getByRole('link', { name: board.name }).click()
+
+  // Open task card
+  await page.getByRole('link', { name: task.title }).click()
+
+  // Edit the task
+  const taskViewDialog = page.getByRole('dialog', { name: task.title })
+  await taskViewDialog.getByRole('button', { name: /task menu/i }).click()
+  await page.getByRole('menuitem', { name: /edit task/i }).click()
+  const taskEditDialog = page.getByRole('dialog', { name: /edit task/i })
+
+  // Add a subtask
+  await taskEditDialog.getByRole('button', { name: /add new subtask/i }).click()
+  const subtaskInput = taskEditDialog
+    .getByRole('textbox', { name: /subtask title/i })
+    .last()
+  const subtaskTitle = faker.lorem.sentence()
+  await subtaskInput.fill(subtaskTitle)
+
+  // Save the changes
+  await taskEditDialog.getByRole('button', { name: /save changes/i }).click()
+
+  // The subtask is displayed in the task view dialog
+  await expect(
+    taskViewDialog.getByRole('checkbox', { name: subtaskTitle }),
+  ).toBeVisible()
+})
+
+test('edit a subtask', async ({ page, createBoard, createTasks }) => {
+  const column = makeColumn()
+  const board = await createBoard({ columns: [column] })
+  const incompleteSubtask = makeSubtask({ isCompleted: false })
+  const completeSubtask = makeSubtask({ isCompleted: true })
+  const task = makeTask({ subtasks: [incompleteSubtask, completeSubtask] })
+  await createTasks({ boardId: board.id, columnId: column.id, ...task })
+
+  await page.goto('/')
+  await page.getByRole('link', { name: board.name }).click()
+
+  // Open task card
+  await page.getByRole('link', { name: task.title }).click()
+
+  // Edit the task
+  const taskViewDialog = page.getByRole('dialog', { name: task.title })
+  await taskViewDialog.getByRole('button', { name: /task menu/i }).click()
+  await page.getByRole('menuitem', { name: /edit task/i }).click()
+  const taskEditDialog = page.getByRole('dialog', { name: /edit task/i })
+
+  // Edit the subtask titles
+  const incompleteSubtaskNewTitle = faker.lorem.sentence()
+  await taskEditDialog
+    .getByRole('textbox', { name: /subtask title/i })
+    .first()
+    .fill(incompleteSubtaskNewTitle)
+  const completeSubtaskNewTitle = faker.lorem.sentence()
+  await taskEditDialog
+    .getByRole('textbox', { name: /subtask title/i })
+    .last()
+    .fill(completeSubtaskNewTitle)
+
+  // Save the changes
+  await taskEditDialog.getByRole('button', { name: /save changes/i }).click()
+
+  // The subtasks are displayed in the task view dialog with the new titles
+  await expect(
+    taskViewDialog.getByRole('checkbox', { name: incompleteSubtaskNewTitle }),
+  ).not.toBeChecked()
+  await expect(
+    taskViewDialog.getByRole('checkbox', { name: completeSubtaskNewTitle }),
+  ).toBeChecked()
+})
+
+test('remove a subtask', async ({ page, createBoard, createTasks }) => {
+  const column = makeColumn()
+  const board = await createBoard({ columns: [column] })
+  const subtask = makeSubtask()
+  const task = makeTask({ subtasks: [subtask] })
+  await createTasks({ boardId: board.id, columnId: column.id, ...task })
+
+  await page.goto('/')
+  await page.getByRole('link', { name: board.name }).click()
+
+  // Open task card
+  await page.getByRole('link', { name: task.title }).click()
+
+  // Edit the task
+  const taskViewDialog = page.getByRole('dialog', { name: task.title })
+  await taskViewDialog.getByRole('button', { name: /task menu/i }).click()
+  await page.getByRole('menuitem', { name: /edit task/i }).click()
+  const taskEditDialog = page.getByRole('dialog', { name: /edit task/i })
+
+  // Remove the subtask
+  await taskEditDialog
+    .getByRole('listitem')
+    .filter({
+      has: page.getByRole('textbox', { name: /subtask title/i }),
+    })
+    .getByRole('button', { name: /remove/i })
+    .click()
+
+  // Save the changes
+  await taskEditDialog.getByRole('button', { name: /save changes/i }).click()
+
+  // The subtask is no longer displayed in the task view dialog
+  await expect(taskViewDialog).toBeVisible()
+  await expect(
+    taskViewDialog.getByRole('checkbox', { name: subtask.title }),
+  ).toBeHidden()
 })

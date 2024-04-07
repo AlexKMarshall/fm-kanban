@@ -5,7 +5,9 @@ import {
   getTextareaProps,
   useForm,
 } from '@conform-to/react'
+import { randomUUID } from 'crypto'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { Cross2Icon } from '@radix-ui/react-icons'
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -24,7 +26,7 @@ import { CloseButton, Dialog, DialogTitle, Modal } from '~/ui/dialog'
 import { FieldError } from '~/ui/field-error'
 import { VerticalEllipsisIcon } from '~/ui/icons/VerticalEllipsisIcon'
 import { Input } from '~/ui/input'
-import { Label } from '~/ui/label'
+import { Label, Legend } from '~/ui/label'
 
 const paramsSchema = z.object({
   id: z.string(),
@@ -87,6 +89,30 @@ const editTaskFormSchema = z.object({
   description: z.string().optional(),
   // TODO: validate the column id
   columnId: z.string({ required_error: 'Select a status' }),
+  subtasks: z
+    .array(
+      z.object({
+        title: z.string().optional(),
+        id: z.string().optional(),
+      }),
+    )
+    .superRefine((subtasks, ctx) => {
+      subtasks.forEach((subtask, index) => {
+        const isLastSubtask = index === subtasks.length - 1
+        if (!subtask.title && !isLastSubtask) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Can't be empty",
+            path: [index, 'title'],
+          })
+        }
+      })
+    })
+    .transform((subtasks) =>
+      subtasks.filter((subtask): subtask is { title: string; id?: string } =>
+        Boolean(subtask.title),
+      ),
+    ),
 })
 
 const actionFormSchema = z.union([
@@ -140,6 +166,20 @@ export async function action({ request, params }: ActionFunctionArgs) {
           title: submission.value.title,
           description: submission.value.description,
           columnId: submission.value.columnId,
+          subtasks: {
+            deleteMany: {
+              id: {
+                notIn: submission.value.subtasks
+                  .map((subtask) => subtask.id)
+                  .filter((id): id is string => id !== undefined),
+              },
+            },
+            upsert: submission.value.subtasks.map(({ id, title }) => ({
+              where: { id: id ?? randomUUID() },
+              create: { title },
+              update: { title },
+            })),
+          },
         },
       })
       return json(submission.reply())
@@ -181,6 +221,10 @@ export default function Task() {
       title: task.title,
       description: task.description,
       columnId: task.Column.id,
+      subtasks: task.subtasks.map((subtask) => ({
+        title: subtask.title,
+        id: subtask.id,
+      })),
     },
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
@@ -190,6 +234,8 @@ export default function Task() {
       return parseWithZod(formData, { schema: editTaskFormSchema })
     },
   })
+
+  const subtasksFieldList = fields.subtasks.getFieldList()
 
   useEffect(() => {
     if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
@@ -357,6 +403,52 @@ export default function Task() {
                 ))}
               </select>
             </div>
+            <fieldset className="flex flex-col gap-3">
+              <Legend>Subtasks</Legend>
+              <ul className="flex flex-col gap-3">
+                {subtasksFieldList.map((subtask, index) => {
+                  const { title, id } = subtask.getFieldset()
+                  return (
+                    <li key={subtask.key} className="flex flex-col gap-2">
+                      <input {...getInputProps(id, { type: 'hidden' })} />
+                      <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
+                        <Input
+                          focusOnMount={index !== 0}
+                          aria-label="Subtask title"
+                          {...getInputProps(title, { type: 'text' })}
+                          className="w-0 flex-1"
+                        />
+                        <IconButton
+                          {...editForm.remove.getButtonProps({
+                            name: fields.subtasks.name,
+                            index,
+                          })}
+                          type="submit"
+                          aria-label="Remove"
+                          className="self-center"
+                        >
+                          <Cross2Icon aria-hidden />
+                        </IconButton>
+                      </div>
+                      <FieldError
+                        id={subtask.errorId}
+                        aria-live="polite"
+                        errors={subtask.errors}
+                      />
+                    </li>
+                  )
+                })}
+              </ul>
+              <Button
+                {...editForm.insert.getButtonProps({
+                  name: fields.subtasks.name,
+                })}
+                className="bg-indigo-700/10 text-indigo-700"
+                type="submit"
+              >
+                + Add New Subtask
+              </Button>
+            </fieldset>
             <Button
               type="submit"
               name={INTENTS.editTask.fieldName}
