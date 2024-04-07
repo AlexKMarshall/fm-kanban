@@ -30,13 +30,18 @@ test('edit task', async ({ page, createBoard, createTasks }) => {
   await expect(taskViewDialog).toBeHidden()
   await expect(taskEditDialog).toBeVisible()
 
-  // Update the task title
-  // -- Check the current value
+  // Validate the current values
   const titleInput = taskEditDialog.getByRole('textbox', { name: /^title/i })
   await expect(titleInput).toHaveValue(task.title)
-  // -- Update the value
+  const descriptionInput = taskEditDialog.getByRole('textbox', {
+    name: /description/i,
+  })
+
+  // Make Edits
   const newTitle = faker.lorem.words()
   await titleInput.fill(newTitle)
+  const newDescription = faker.lorem.paragraph()
+  await descriptionInput.fill(newDescription)
 
   // Save the changes
   await taskEditDialog.getByRole('button', { name: /save changes/i }).click()
@@ -52,4 +57,6 @@ test('edit task', async ({ page, createBoard, createTasks }) => {
   await expect(
     taskViewDialog.getByRole('heading', { name: newTitle }),
   ).toBeVisible()
+  // The task description is updated
+  await expect(taskViewDialog.getByText(newDescription)).toBeVisible()
 })

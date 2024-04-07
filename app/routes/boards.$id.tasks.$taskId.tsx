@@ -1,4 +1,9 @@
-import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import {
+  getFormProps,
+  getInputProps,
+  getTextareaProps,
+  useForm,
+} from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import {
   ActionFunctionArgs,
@@ -78,7 +83,7 @@ const deleteTaskFormSchema = z.object({
 const editTaskFormSchema = z.object({
   intent: z.literal(INTENTS.editTask.value),
   title: z.string({ required_error: "Can't be empty" }),
-  // description: z.string().optional(),
+  description: z.string().optional(),
   // // TODO: validate the column id
   // columnId: z.string({ required_error: 'Select a status' }),
 })
@@ -132,6 +137,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         },
         data: {
           title: submission.value.title,
+          description: submission.value.description,
         },
       })
       return json(submission.reply())
@@ -314,6 +320,21 @@ export default function Task() {
               <Input
                 {...getInputProps(fields.title, { type: 'text' })}
                 placeholder="e.g. Take coffee break"
+                autoComplete="off"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap justify-between gap-2">
+                <Label htmlFor={fields.description.id}>Description</Label>
+                <FieldError
+                  id={fields.description.errorId}
+                  aria-live="polite"
+                  errors={fields.description.errors}
+                />
+              </div>
+              <textarea
+                {...getTextareaProps(fields.description)}
+                placeholder="e.g. It’s always good to take a break. This 15 minute break will recharge the batteries a little."
                 autoComplete="off"
               />
             </div>
