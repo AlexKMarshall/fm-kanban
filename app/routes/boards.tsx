@@ -128,7 +128,7 @@ export default function Home() {
   }, [location.pathname])
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-[16rem_1fr] md:grid-cols-[19rem_1fr]">
+    <div className="grid grid-cols-1 grid-rows-[auto_1fr] sm:grid-cols-[16rem_1fr] md:grid-cols-[19rem_1fr]">
       <header className="overflow-auto p-8 sm:max-h-screen">
         <div className="flex items-start gap-4 text-lg sm:mb-14">
           <Link to="/" aria-label="Kanban home">
