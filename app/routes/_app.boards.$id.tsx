@@ -17,8 +17,9 @@ import {
   useFetcher,
   useLoaderData,
   useRouteLoaderData,
+  useSearchParams,
 } from '@remix-run/react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components'
 import { z } from 'zod'
 
@@ -161,8 +162,6 @@ export default function Board() {
     tasks: board.tasks.filter((task) => task.columnId === column.id),
   }))
 
-  const [modalOpen, setModalOpen] = useState<ModalType | null>(null)
-
   const actionData = useActionData<typeof action>()
   const fetcher = useFetcher<typeof action>()
 
@@ -185,12 +184,18 @@ export default function Board() {
   const columnsFieldList = fields.columns.getFieldList()
 
   const isEditingBoard = fetcher.state !== 'idle'
+  const [searchParams, setSearchParams] = useSearchParams()
+  const modalOpen = searchParams.get('boardContextDialog') as ModalType | null
 
   useEffect(() => {
     if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
-      setModalOpen(null)
+      setSearchParams((prev) => {
+        const updated = new URLSearchParams(prev)
+        updated.delete('boardContextDialog')
+        return updated
+      })
     }
-  }, [fetcher.data?.status, fetcher.state])
+  }, [fetcher.data?.status, fetcher.state, setSearchParams])
 
   return (
     <div className="flex flex-grow flex-col border-l border-l-gray-200 bg-gray-50">
@@ -211,7 +216,11 @@ export default function Board() {
             <Menu
               onAction={(key) => {
                 if (Object.values(modalTypes).includes(key as ModalType)) {
-                  setModalOpen(key as ModalType)
+                  setSearchParams((prev) => {
+                    const updated = new URLSearchParams(prev)
+                    updated.set('boardContextDialog', key as ModalType)
+                    return updated
+                  })
                 }
               }}
               className="flex min-w-48 flex-col gap-4 rounded-lg bg-white p-4"
@@ -231,142 +240,6 @@ export default function Board() {
             </Menu>
           </Popover>
         </MenuTrigger>
-        <Modal
-          isOpen={modalOpen === modalTypes.edit}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) {
-              setModalOpen(null)
-            }
-          }}
-          isDismissable
-        >
-          <Dialog>
-            <DialogTitle>Edit Board</DialogTitle>
-            <fetcher.Form
-              method="post"
-              {...getFormProps(editForm)}
-              className="flex flex-col gap-6"
-              aria-labelledby="create-board-dialog-title"
-            >
-              {/* We need this button first in the form to be the default onEnter submission */}
-              <button
-                type="submit"
-                className="hidden"
-                name="intent"
-                value={INTENTS.edit}
-                tabIndex={-1}
-              >
-                Create new board
-              </button>
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-wrap justify-between gap-2">
-                  <Label htmlFor={fields.name.id}>Name</Label>
-                  <FieldError
-                    id={fields.name.errorId}
-                    aria-live="polite"
-                    errors={fields.name.errors}
-                  />
-                </div>
-                <Input
-                  {...getInputProps(fields.name, { type: 'text' })}
-                  placeholder="e.g. Web Design"
-                  autoComplete="off"
-                />
-              </div>
-              <fieldset className="flex flex-col gap-3">
-                <Legend>Columns</Legend>
-                <ul className="flex flex-col gap-3">
-                  {columnsFieldList.map((column, index) => {
-                    const { name, id } = column.getFieldset()
-                    return (
-                      <li key={column.key} className="flex flex-col gap-2">
-                        <input {...getInputProps(id, { type: 'hidden' })} />
-                        <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
-                          <Input
-                            focusOnMount={index !== 0}
-                            aria-label="Column name"
-                            {...getInputProps(name, { type: 'text' })}
-                            className="w-0 flex-1"
-                          />
-                          <IconButton
-                            {...editForm.remove.getButtonProps({
-                              name: fields.columns.name,
-                              index,
-                            })}
-                            type="submit"
-                            aria-label="Remove"
-                            className="self-center"
-                          >
-                            <Cross2Icon aria-hidden />
-                          </IconButton>
-                        </div>
-                        <FieldError
-                          id={column.errorId}
-                          aria-live="polite"
-                          errors={column.errors}
-                        />
-                      </li>
-                    )
-                  })}
-                </ul>
-                <Button
-                  {...editForm.insert.getButtonProps({
-                    name: fields.columns.name,
-                  })}
-                  className="bg-indigo-700/10 text-indigo-700"
-                  type="submit"
-                >
-                  + Add New Column
-                </Button>
-              </fieldset>
-              <Button
-                type="submit"
-                name="intent"
-                value={INTENTS.edit}
-                className="bg-indigo-700 text-white"
-              >
-                {isEditingBoard ? 'Saving Changes...' : 'Save Changes'}
-              </Button>
-            </fetcher.Form>
-          </Dialog>
-        </Modal>
-        <Modal
-          isOpen={modalOpen === modalTypes.delete}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) {
-              setModalOpen(null)
-            }
-          }}
-        >
-          <Dialog role="alertdialog">
-            <DialogTitle>Delete this board?</DialogTitle>
-            <p>
-              Are you sure you want to delete the &lsquo;{board.name}&rsquo;
-              board? This action will remove all columns and tasks and cannot be
-              reversed.
-            </p>
-            <Form method="post">
-              <div className="flex gap-4">
-                <Button
-                  type="submit"
-                  name="intent"
-                  value={INTENTS.delete}
-                  className="grow bg-red-700 text-white"
-                >
-                  Delete
-                </Button>
-                <CloseButton
-                  type="button"
-                  className="grow bg-indigo-200 text-indigo-700"
-                >
-                  Cancel
-                </CloseButton>
-              </div>
-            </Form>
-          </Dialog>
-        </Modal>
-
-        <Outlet />
       </div>
       {columnsWithTasks.length ? (
         <ul className="flex flex-grow gap-6 overflow-auto px-4 py-6 *:shrink-0 *:grow-0 *:basis-72 sm:p-6">
@@ -417,6 +290,150 @@ export default function Board() {
           </p>
         </div>
       )}
+      <Modal
+        isOpen={modalOpen === modalTypes.edit}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setSearchParams((prev) => {
+              const updated = new URLSearchParams(prev)
+              updated.delete('boardContextDialog')
+              return updated
+            })
+          }
+        }}
+        isDismissable
+      >
+        <Dialog>
+          <DialogTitle>Edit Board</DialogTitle>
+          <fetcher.Form
+            method="post"
+            {...getFormProps(editForm)}
+            className="flex flex-col gap-6"
+            aria-labelledby="create-board-dialog-title"
+          >
+            {/* We need this button first in the form to be the default onEnter submission */}
+            <button
+              type="submit"
+              className="hidden"
+              name="intent"
+              value={INTENTS.edit}
+              tabIndex={-1}
+            >
+              Create new board
+            </button>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap justify-between gap-2">
+                <Label htmlFor={fields.name.id}>Name</Label>
+                <FieldError
+                  id={fields.name.errorId}
+                  aria-live="polite"
+                  errors={fields.name.errors}
+                />
+              </div>
+              <Input
+                {...getInputProps(fields.name, { type: 'text' })}
+                placeholder="e.g. Web Design"
+                autoComplete="off"
+              />
+            </div>
+            <fieldset className="flex flex-col gap-3">
+              <Legend>Columns</Legend>
+              <ul className="flex flex-col gap-3">
+                {columnsFieldList.map((column, index) => {
+                  const { name, id } = column.getFieldset()
+                  return (
+                    <li key={column.key} className="flex flex-col gap-2">
+                      <input {...getInputProps(id, { type: 'hidden' })} />
+                      <div className="flex gap-2 has-[[aria-invalid]]:text-red-700">
+                        <Input
+                          focusOnMount={index !== 0}
+                          aria-label="Column name"
+                          {...getInputProps(name, { type: 'text' })}
+                          className="w-0 flex-1"
+                        />
+                        <IconButton
+                          {...editForm.remove.getButtonProps({
+                            name: fields.columns.name,
+                            index,
+                          })}
+                          type="submit"
+                          aria-label="Remove"
+                          className="self-center"
+                        >
+                          <Cross2Icon aria-hidden />
+                        </IconButton>
+                      </div>
+                      <FieldError
+                        id={column.errorId}
+                        aria-live="polite"
+                        errors={column.errors}
+                      />
+                    </li>
+                  )
+                })}
+              </ul>
+              <Button
+                {...editForm.insert.getButtonProps({
+                  name: fields.columns.name,
+                })}
+                className="bg-indigo-700/10 text-indigo-700"
+                type="submit"
+              >
+                + Add New Column
+              </Button>
+            </fieldset>
+            <Button
+              type="submit"
+              name="intent"
+              value={INTENTS.edit}
+              className="bg-indigo-700 text-white"
+            >
+              {isEditingBoard ? 'Saving Changes...' : 'Save Changes'}
+            </Button>
+          </fetcher.Form>
+        </Dialog>
+      </Modal>
+      <Modal
+        isOpen={modalOpen === modalTypes.delete}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setSearchParams((prev) => {
+              const updated = new URLSearchParams(prev)
+              updated.delete('boardContextDialog')
+              return updated
+            })
+          }
+        }}
+      >
+        <Dialog role="alertdialog">
+          <DialogTitle>Delete this board?</DialogTitle>
+          <p>
+            Are you sure you want to delete the &lsquo;{board.name}&rsquo;
+            board? This action will remove all columns and tasks and cannot be
+            reversed.
+          </p>
+          <Form method="post">
+            <div className="flex gap-4">
+              <Button
+                type="submit"
+                name="intent"
+                value={INTENTS.delete}
+                className="grow bg-red-700 text-white"
+              >
+                Delete
+              </Button>
+              <CloseButton
+                type="button"
+                className="grow bg-indigo-200 text-indigo-700"
+              >
+                Cancel
+              </CloseButton>
+            </div>
+          </Form>
+        </Dialog>
+      </Modal>
+
+      <Outlet />
     </div>
   )
 }
