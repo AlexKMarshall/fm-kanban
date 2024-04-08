@@ -204,7 +204,6 @@ type ModalType = (typeof modalType)[keyof typeof modalType]
 
 export default function Task() {
   const { task, columns } = useLoaderData<typeof loader>()
-  const itemTitleId = useId()
 
   const navigate = useNavigate()
 
@@ -257,7 +256,7 @@ export default function Task() {
       >
         <Dialog>
           <div className="flex items-center justify-between gap-4">
-            <DialogTitle id={itemTitleId}>{task.title}</DialogTitle>
+            <DialogTitle>{task.title}</DialogTitle>
             <MenuTrigger>
               <IconButton aria-label="Task menu">
                 <VerticalEllipsisIcon />

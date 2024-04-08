@@ -46,11 +46,13 @@ export function Dialog({
   )
 }
 
-export function DialogTitle({
-  children,
-  className,
-  ...props
-}: Omit<ComponentPropsWithoutRef<typeof Heading>, 'slot'>) {
+export function DialogTitle(
+  {
+    children,
+    className,
+    ...props
+  }: Omit<ComponentPropsWithoutRef<typeof Heading>, 'slot' | 'id'>, // We have to omit `id` because if we override it, it will break the aria-labelledby association
+) {
   return (
     <Heading
       {...props}

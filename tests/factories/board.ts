@@ -48,7 +48,7 @@ export function makeTask(
   const subtasks =
     overrides?.subtasks?.map((subtaskOverrides) =>
       makeSubtask(subtaskOverrides),
-    ) ?? faker.helpers.multiple(makeSubtask, { count: { min: 0, max: 5 } })
+    ) ?? faker.helpers.multiple(makeSubtask, { count: { min: 1, max: 5 } })
 
   return {
     title,
