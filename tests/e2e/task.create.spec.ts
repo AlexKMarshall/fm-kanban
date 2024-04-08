@@ -24,18 +24,18 @@ test('create task', async ({ page, createBoard }) => {
   // Create first card in first column
   await page.getByRole('link', { name: /add new task/i }).click()
 
-  const addNewTaskForm = page.getByRole('form', { name: /add new task/i })
+  const addNewTaskDialog = page.getByRole('dialog', { name: /add new task/i })
 
-  await addNewTaskForm
+  await addNewTaskDialog
     .getByRole('textbox', { name: /^title/i })
     .fill(task1.title)
-  await addNewTaskForm
+  await addNewTaskDialog
     .getByRole('textbox', { name: /description/i })
     .fill(task1Description)
-  await addNewTaskForm
+  await addNewTaskDialog
     .getByRole('combobox', { name: /status/i })
     .selectOption(column1.name)
-  await addNewTaskForm.getByRole('button', { name: /create task/i }).click()
+  await addNewTaskDialog.getByRole('button', { name: /create task/i }).click()
 
   const columnOneElement = page
     .getByRole('listitem')
@@ -60,30 +60,30 @@ test('create task', async ({ page, createBoard }) => {
   // Create second card in second column
   await page.getByRole('link', { name: /add new task/i }).click()
 
-  await addNewTaskForm
+  await addNewTaskDialog
     .getByRole('textbox', { name: /^title/i })
     .fill(task2.title)
-  await addNewTaskForm
+  await addNewTaskDialog
     .getByRole('textbox', { name: /description/i })
     .fill(task2Description)
-  await addNewTaskForm
+  await addNewTaskDialog
     .getByRole('combobox', { name: /status/i })
     .selectOption(column2.name)
 
   for (let i = 0; i < task2.subtasks.length; i++) {
     const subtask = task2.subtasks[i]
     if (i > 0) {
-      await addNewTaskForm
+      await addNewTaskDialog
         .getByRole('button', { name: /add new subtask/i })
         .click()
     }
-    await addNewTaskForm
+    await addNewTaskDialog
       .getByRole('textbox', { name: /subtask title/i })
       .last()
       .fill(subtask.title)
   }
 
-  await addNewTaskForm.getByRole('button', { name: /create task/i }).click()
+  await addNewTaskDialog.getByRole('button', { name: /create task/i }).click()
 
   const columnTwoElement = page
     .getByRole('listitem')

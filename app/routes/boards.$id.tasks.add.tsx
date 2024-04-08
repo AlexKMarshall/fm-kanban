@@ -122,12 +122,11 @@ export default function Board() {
       }}
     >
       <Dialog>
-        <DialogTitle id="create-task-modal-title">Add New Task</DialogTitle>
+        <DialogTitle>Add New Task</DialogTitle>
         <fetcher.Form
           method="post"
           {...getFormProps(form)}
           className="flex flex-col gap-6"
-          aria-labelledby="create-task-modal-title"
         >
           {/* We need this button first in the form to be the default onEnter submission */}
           <button

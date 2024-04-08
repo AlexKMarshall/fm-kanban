@@ -1,7 +1,7 @@
 /* eslint-disable no-empty-pattern */
 
 import { test as base, expect as baseExpect } from '@playwright/test'
-import type { Locator, Page } from '@playwright/test'
+import type { ConsoleMessage, Locator, Page } from '@playwright/test'
 import * as setCookieParser from 'set-cookie-parser'
 import { PartialDeep } from 'type-fest'
 import { z } from 'zod'
@@ -159,6 +159,25 @@ export const test = base.extend<{
   },
   createTasks: async ({}, use) => {
     await use(makeCreateTasksFixture())
+  },
+  page: async ({ page }, use) => {
+    // Validate that no console errors or warnings happen
+    const consoleErrors: Array<{ content: string } & ConsoleMessage> = []
+    const consoleWarnings: Array<{ content: string } & ConsoleMessage> = []
+    page.on('console', (message) => {
+      switch (message.type()) {
+        case 'error':
+          consoleErrors.push({ ...message, content: message.text() })
+          return
+
+        case 'warning':
+          consoleWarnings.push({ ...message, content: message.text() })
+          return
+      }
+    })
+    await use(page)
+    expect(consoleErrors).toHaveLength(0)
+    expect(consoleWarnings).toHaveLength(0)
   },
 })
 
