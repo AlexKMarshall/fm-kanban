@@ -80,8 +80,3 @@ export function CloseButton({
     />
   )
 }
-
-export {
-  DialogTrigger,
-  Button as DialogTriggerButton,
-} from 'react-aria-components'

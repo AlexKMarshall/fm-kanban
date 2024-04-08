@@ -7,9 +7,18 @@ import {
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { Cross2Icon } from '@radix-ui/react-icons'
-import { ActionFunctionArgs, json, redirect } from '@remix-run/node'
-import { useActionData, useFetcher, useNavigate } from '@remix-run/react'
-import invariant from 'tiny-invariant'
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  json,
+  redirect,
+} from '@remix-run/node'
+import {
+  useActionData,
+  useFetcher,
+  useLoaderData,
+  useNavigate,
+} from '@remix-run/react'
 import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
@@ -19,8 +28,6 @@ import { Dialog, DialogTitle, Modal } from '~/ui/dialog'
 import { FieldError } from '~/ui/field-error'
 import { Input } from '~/ui/input'
 import { Label, Legend } from '~/ui/label'
-
-import { useBoardLoaderData } from './boards.$id'
 
 const paramsSchema = z.object({
   id: z.string(),
@@ -42,6 +49,21 @@ const INTENTS = {
     fieldName: 'intent',
   },
 } as const
+
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  const accountId = await requireAuthCookie(request)
+  const { id } = paramsSchema.parse(params)
+
+  const board = await getBoard({ id, accountId })
+  if (!board) {
+    throw new Response('Board not found', {
+      status: 404,
+      statusText: 'Not found',
+    })
+  }
+
+  return json({ board })
+}
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const accountId = await requireAuthCookie(request)
@@ -84,12 +106,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function Board() {
-  const boardLoaderData = useBoardLoaderData()
-  invariant(
-    boardLoaderData,
-    'Board loader data is not set, it should be the parent of this route',
-  )
-  const { board } = boardLoaderData
+  const { board } = useLoaderData<typeof loader>()
   const lastResult = useActionData<typeof action>()
   const fetcher = useFetcher()
   const [form, fields] = useForm<z.infer<typeof createTaskSchema>>({
@@ -252,4 +269,28 @@ async function checkBoardExists({
   })
 
   return Boolean(board)
+}
+
+function getBoard({ id, accountId }: { id: string; accountId: string }) {
+  return prisma.board.findFirst({
+    where: { id, ownerId: accountId },
+    select: {
+      id: true,
+      name: true,
+      columns: {
+        select: { id: true, name: true },
+      },
+      tasks: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          columnId: true,
+          subtasks: {
+            select: { id: true, title: true, isCompleted: true },
+          },
+        },
+      },
+    },
+  })
 }

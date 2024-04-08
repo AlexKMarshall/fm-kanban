@@ -195,7 +195,7 @@ export default function Board() {
   return (
     <div className="flex flex-grow flex-col border-l border-l-gray-200 bg-gray-50">
       <div className="flex items-center gap-6 border-b border-b-gray-200 bg-white p-4">
-        <h1 className="text-xl font-bold">{board.name}</h1>
+        <h1 className="hidden text-xl font-bold sm:block">{board.name}</h1>
         <ButtonLink
           aria-disabled={board.columns.length === 0}
           to="tasks/add"
