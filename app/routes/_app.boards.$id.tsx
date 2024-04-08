@@ -6,6 +6,7 @@ import { Cross2Icon } from '@radix-ui/react-icons'
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
+  SerializeFrom,
   json,
   redirect,
 } from '@remix-run/node'
@@ -198,49 +199,7 @@ export default function Board() {
   }, [fetcher.data?.status, fetcher.state, setSearchParams])
 
   return (
-    <div className="flex flex-grow flex-col border-l border-l-gray-200 bg-gray-50">
-      <div className="flex items-center gap-6 border-b border-b-gray-200 bg-white p-4">
-        <h1 className="hidden text-xl font-bold sm:block">{board.name}</h1>
-        <ButtonLink
-          aria-disabled={board.columns.length === 0}
-          to="tasks/add"
-          className="text-default ml-auto bg-indigo-700 text-white aria-disabled:bg-indigo-300"
-        >
-          + Add New Task
-        </ButtonLink>
-        <MenuTrigger>
-          <IconButton aria-label="Board menu">
-            <VerticalEllipsisIcon />
-          </IconButton>
-          <Popover containerPadding={24} offset={24}>
-            <Menu
-              onAction={(key) => {
-                if (Object.values(modalTypes).includes(key as ModalType)) {
-                  setSearchParams((prev) => {
-                    const updated = new URLSearchParams(prev)
-                    updated.set('boardContextDialog', key as ModalType)
-                    return updated
-                  })
-                }
-              }}
-              className="flex min-w-48 flex-col gap-4 rounded-lg bg-white p-4"
-            >
-              <MenuItem
-                id={modalTypes.edit}
-                className="cursor-pointer rounded text-sm text-gray-500 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-indigo-700"
-              >
-                Edit Board
-              </MenuItem>
-              <MenuItem
-                id={modalTypes.delete}
-                className="cursor-pointer rounded text-sm text-red-700 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-red-700"
-              >
-                Delete Board
-              </MenuItem>
-            </Menu>
-          </Popover>
-        </MenuTrigger>
-      </div>
+    <div className="flex flex-grow flex-col">
       {columnsWithTasks.length ? (
         <ul className="flex flex-grow gap-6 overflow-auto px-4 py-6 *:shrink-0 *:grow-0 *:basis-72 sm:p-6">
           {columnsWithTasks.map((column) => (
@@ -294,11 +253,14 @@ export default function Board() {
         isOpen={modalOpen === modalTypes.edit}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
-            setSearchParams((prev) => {
-              const updated = new URLSearchParams(prev)
-              updated.delete('boardContextDialog')
-              return updated
-            })
+            setSearchParams(
+              (prev) => {
+                const updated = new URLSearchParams(prev)
+                updated.delete('boardContextDialog')
+                return updated
+              },
+              { replace: true },
+            )
           }
         }}
         isDismissable
@@ -397,11 +359,14 @@ export default function Board() {
         isOpen={modalOpen === modalTypes.delete}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
-            setSearchParams((prev) => {
-              const updated = new URLSearchParams(prev)
-              updated.delete('boardContextDialog')
-              return updated
-            })
+            setSearchParams(
+              (prev) => {
+                const updated = new URLSearchParams(prev)
+                updated.delete('boardContextDialog')
+                return updated
+              },
+              { replace: true },
+            )
           }
         }}
       >
@@ -436,6 +401,62 @@ export default function Board() {
       <Outlet />
     </div>
   )
+}
+
+function Header({
+  loaderData: { board },
+}: {
+  loaderData: SerializeFrom<typeof loader>
+}) {
+  const [, setSearchParams] = useSearchParams()
+  return (
+    <div className="flex items-center gap-6 ">
+      <h1 className="hidden text-xl font-bold sm:block">{board.name}</h1>
+      <ButtonLink
+        aria-disabled={board.columns.length === 0}
+        to={`boards/${board.id}/tasks/add`}
+        className="text-default ml-auto bg-indigo-700 text-white aria-disabled:bg-indigo-300"
+      >
+        + Add New Task
+      </ButtonLink>
+      <MenuTrigger>
+        <IconButton aria-label="Board menu">
+          <VerticalEllipsisIcon />
+        </IconButton>
+        <Popover containerPadding={24} offset={24}>
+          <Menu
+            onAction={(key) => {
+              if (Object.values(modalTypes).includes(key as ModalType)) {
+                setSearchParams((prev) => {
+                  const updated = new URLSearchParams(prev)
+                  updated.set('boardContextDialog', key as ModalType)
+                  return updated
+                })
+              }
+            }}
+            className="flex min-w-48 flex-col gap-4 rounded-lg bg-white p-4"
+          >
+            <MenuItem
+              id={modalTypes.edit}
+              className="cursor-pointer rounded text-sm text-gray-500 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-indigo-700"
+            >
+              Edit Board
+            </MenuItem>
+            <MenuItem
+              id={modalTypes.delete}
+              className="cursor-pointer rounded text-sm text-red-700 outline-none ring-offset-2 data-[focus-visible]:ring data-[focus-visible]:ring-red-700"
+            >
+              Delete Board
+            </MenuItem>
+          </Menu>
+        </Popover>
+      </MenuTrigger>
+    </div>
+  )
+}
+
+export const handle = {
+  Header,
 }
 
 function getBoard({ id, accountId }: { id: string; accountId: string }) {
