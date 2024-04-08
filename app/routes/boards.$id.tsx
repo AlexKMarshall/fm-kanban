@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto'
+
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { Cross2Icon } from '@radix-ui/react-icons'
@@ -129,7 +131,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
           },
         },
         upsert: columns.map(({ id, name }) => ({
-          where: { id },
+          // Prisma requires an id for upsert
+          where: { id: id ?? randomUUID() },
           create: { name },
           update: { name },
         })),
