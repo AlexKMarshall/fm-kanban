@@ -16,6 +16,7 @@ import {
   useLoaderData,
   useRouteLoaderData,
 } from '@remix-run/react'
+import { randomUUID } from 'crypto'
 import { useEffect, useState } from 'react'
 import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components'
 import { z } from 'zod'
@@ -129,7 +130,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
           },
         },
         upsert: columns.map(({ id, name }) => ({
-          where: { id },
+          // Prisma requires an id for upsert
+          where: { id: id ?? randomUUID() },
           create: { name },
           update: { name },
         })),

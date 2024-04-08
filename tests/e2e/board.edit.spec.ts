@@ -28,6 +28,32 @@ test('edit board title', async ({ page, createBoard }) => {
   await expect(page.getByRole('link', { name: board.name })).toBeHidden()
 })
 
+test('add a column', async ({ page, createBoard }) => {
+  const board = await createBoard()
+
+  await page.goto('/')
+  await page.getByRole('link', { name: board.name }).click()
+
+  await page.getByRole('button', { name: /board menu/i }).click()
+  await page.getByRole('menuitem', { name: /edit board/i }).click()
+
+  const dialog = page.getByRole('dialog', { name: /edit board/i })
+  await expect(dialog).toBeVisible()
+
+  await dialog.getByRole('button', { name: /add new column/i }).click()
+
+  const newColumnName = faker.lorem.words()
+  await dialog
+    .getByRole('textbox', { name: /column name/i })
+    .last()
+    .fill(newColumnName)
+  await dialog.getByRole('button', { name: /save changes/i }).click()
+
+  await expect(dialog).toBeHidden()
+
+  await expect(page.getByRole('heading', { name: newColumnName })).toBeVisible()
+})
+
 test('update existing column name', async ({
   page,
   createBoard,
