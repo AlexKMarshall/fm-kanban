@@ -34,7 +34,7 @@ export default function AppLayout() {
         <header className="border-b border-b-gray-200 bg-white p-4">
           {header}
         </header>
-        <main className="flex bg-gray-50 sm:max-h-screen sm:overflow-auto">
+        <main className="flex overflow-x-auto bg-gray-50">
           <Outlet />
         </main>
       </div>
