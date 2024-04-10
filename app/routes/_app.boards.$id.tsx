@@ -36,6 +36,8 @@ import { Input } from '~/ui/input'
 import { Label, Legend } from '~/ui/label'
 import { ButtonLink } from '~/ui/link'
 
+import { useCreateBoardModal } from './_app.boards'
+
 const ROUTE_ID = 'routes/boards.$id'
 
 const paramsSchema = z.object({
@@ -413,6 +415,7 @@ function Header({
   loaderData: SerializeFrom<typeof loader>
 }) {
   const [searchParams, setSearchParams] = useSearchParams()
+  const createBoardModal = useCreateBoardModal()
   return (
     <div className="flex items-center gap-6 ">
       <h1 className="sm:hidden">
@@ -470,11 +473,7 @@ function Header({
             </ul>
             <button
               onClick={() => {
-                setSearchParams((prev) => {
-                  const updated = new URLSearchParams(prev)
-                  updated.set('modal', 'create-board')
-                  return updated
-                })
+                createBoardModal.open()
               }}
               className="flex items-start gap-3 py-3 text-left font-bold text-indigo-700"
             >

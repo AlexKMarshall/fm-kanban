@@ -20,6 +20,7 @@ import { z } from 'zod'
 
 import { requireAuthCookie } from '~/auth'
 import { prisma } from '~/db/prisma.server'
+import { useModalState } from '~/hooks/useModalState'
 import { Button, IconButton } from '~/ui/button'
 import { Dialog, DialogTitle, Modal } from '~/ui/dialog'
 import { FieldError } from '~/ui/field-error'
@@ -84,6 +85,10 @@ const INTENTS = {
   },
 } as const
 
+export function useCreateBoardModal() {
+  return useModalState('create-board')
+}
+
 export default function Home() {
   const actionData = useActionData<typeof action>()
   const [form, fields] = useForm<z.infer<typeof createBoardSchema>>({
@@ -104,21 +109,16 @@ export default function Home() {
   const isCreatingBoard =
     navigation.formData?.get(INTENTS.createBoard.fieldName) ===
     INTENTS.createBoard.value
-
-  const [searchParams, setSearchParams] = useSearchParams()
+  const createBoardModal = useCreateBoardModal()
 
   return (
     <>
       <Modal
         isDismissable
-        isOpen={searchParams.get('modal') === 'create-board'}
+        isOpen={createBoardModal.isOpen}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
-            setSearchParams((prev) => {
-              const updated = new URLSearchParams(prev)
-              updated.delete('modal')
-              return updated
-            })
+            createBoardModal.close()
           }
         }}
       >

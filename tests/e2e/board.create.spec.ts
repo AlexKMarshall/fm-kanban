@@ -1,17 +1,50 @@
+import { Page } from '@playwright/test'
+
 import { makeBoard } from 'tests/factories/board'
 
 import { expect, test } from '../playwright-utils'
 
-test('create board', async ({ page, login }) => {
+class KanbanPageObject {
+  constructor(private page: Page) {}
+
+  #isSmallScreen() {
+    const viewportWidth = this.page.viewportSize()?.width
+    if (!viewportWidth) {
+      throw new Error('Viewport width is not set')
+    }
+
+    // Ideally we'd get this from the tailwind config somehow
+    return viewportWidth < 640
+  }
+
+  async gotoHome() {
+    await this.page.goto('/')
+  }
+
+  async openCreateBoardDialog() {
+    // On small screens, the create board button is nested inside the select a board mobile nav dialog
+    if (this.#isSmallScreen()) {
+      await this.page.getByRole('button', { name: /select a board/i }).click()
+    }
+    await this.page.getByRole('button', { name: /create new board/i }).click()
+
+    return this.page.getByRole('dialog', { name: /add new board/i })
+  }
+}
+
+test('create board', { tag: '@mobile-ready' }, async ({ page, login }) => {
   const board = makeBoard()
   await login()
 
-  await page.goto('/')
+  const kanbanPage = new KanbanPageObject(page)
 
-  await page.getByRole('button', { name: /create new board/i }).click()
-  const createBoardDialog = page.getByRole('dialog').filter({
-    has: page.getByRole('button', { name: /create new board/i }),
-  })
+  await kanbanPage.gotoHome()
+
+  const createBoardDialog = await kanbanPage.openCreateBoardDialog()
+
+  // const createBoardDialog = page.getByRole('dialog').filter({
+  //   has: page.getByRole('button', { name: /create new board/i }),
+  // })
 
   await createBoardDialog
     .getByRole('textbox', { name: /^name/i })
@@ -40,43 +73,48 @@ test('create board', async ({ page, login }) => {
   }
 })
 
-test('create board with no columns', async ({ page, login }) => {
-  const boardWithoutColumns = makeBoard({ columns: [] })
-  await login()
+test(
+  'create board with no columns',
+  { tag: '@mobile-ready' },
+  async ({ page, login }) => {
+    const boardWithoutColumns = makeBoard({ columns: [] })
+    await login()
+    const kanbanPage = new KanbanPageObject(page)
 
-  await page.goto('/')
-  await page.getByRole('button', { name: /create new board/i }).click()
-  const createBoardDialog = page.getByRole('dialog').filter({
-    has: page.getByRole('button', { name: /create new board/i }),
-  })
+    await kanbanPage.gotoHome()
+    const createBoardDialog = await kanbanPage.openCreateBoardDialog()
 
-  await createBoardDialog
-    .getByRole('textbox', { name: /^name/i })
-    .fill(boardWithoutColumns.name)
+    await createBoardDialog
+      .getByRole('textbox', { name: /^name/i })
+      .fill(boardWithoutColumns.name)
 
-  await createBoardDialog
-    .getByRole('button', { name: /create new board/i })
-    .click()
+    await createBoardDialog
+      .getByRole('button', { name: /create new board/i })
+      .click()
 
-  await expect(
-    page.getByRole('heading', { name: boardWithoutColumns.name }),
-  ).toBeVisible()
-})
+    await expect(
+      page.getByRole('heading', { name: boardWithoutColumns.name }),
+    ).toBeVisible()
+  },
+)
 
-test('board name is required', async ({ page, login }) => {
-  await login()
+test(
+  'board name is required',
+  { tag: '@mobile-ready' },
+  async ({ page, login }) => {
+    await login()
 
-  await page.goto('/')
-  await page.getByRole('button', { name: /create new board/i }).click()
-  const createBoardDialog = page.getByRole('dialog').filter({
-    has: page.getByRole('button', { name: /create new board/i }),
-  })
+    const kanbanPage = new KanbanPageObject(page)
 
-  await createBoardDialog
-    .getByRole('button', { name: /create new board/i })
-    .click()
+    await kanbanPage.gotoHome()
+    const createBoardDialog = await kanbanPage.openCreateBoardDialog()
 
-  const nameField = createBoardDialog.getByRole('textbox', { name: /^name/i })
-  await expect(nameField).toBeAriaInvalid()
-  await expect(nameField).toBeDescribedBy("Can't be empty")
-})
+    await createBoardDialog
+      .getByRole('button', { name: /create new board/i })
+      .click()
+
+    const nameField = createBoardDialog.getByRole('textbox', { name: /^name/i })
+    await expect(nameField).toBeAriaInvalid()
+    await expect(nameField).toBeDescribedBy("Can't be empty")
+  },
+)
