@@ -1,17 +1,50 @@
+import { Page } from '@playwright/test'
+
 import { makeBoard } from 'tests/factories/board'
 
 import { expect, test } from '../playwright-utils'
 
-test('create board', async ({ page, login }) => {
+class KanbanPageObject {
+  constructor(private page: Page) {}
+
+  #isSmallScreen() {
+    const viewportWidth = this.page.viewportSize()?.width
+    if (!viewportWidth) {
+      throw new Error('Viewport width is not set')
+    }
+
+    // Ideally we'd get this from the tailwind config somehow
+    return viewportWidth < 640
+  }
+
+  async gotoHome() {
+    await this.page.goto('/')
+  }
+
+  async openCreateBoardDialog() {
+    // On small screens, the create board button is nested inside the select a board mobile nav dialog
+    if (this.#isSmallScreen()) {
+      await this.page.getByRole('button', { name: /select a board/i }).click()
+    }
+    await this.page.getByRole('button', { name: /create new board/i }).click()
+
+    return this.page.getByRole('dialog', { name: /add new board/i })
+  }
+}
+
+test('create board', { tag: '@mobile-ready' }, async ({ page, login }) => {
   const board = makeBoard()
   await login()
 
-  await page.goto('/')
+  const kanbanPage = new KanbanPageObject(page)
 
-  await page.getByRole('button', { name: /create new board/i }).click()
-  const createBoardDialog = page.getByRole('dialog').filter({
-    has: page.getByRole('button', { name: /create new board/i }),
-  })
+  await kanbanPage.gotoHome()
+
+  const createBoardDialog = await kanbanPage.openCreateBoardDialog()
+
+  // const createBoardDialog = page.getByRole('dialog').filter({
+  //   has: page.getByRole('button', { name: /create new board/i }),
+  // })
 
   await createBoardDialog
     .getByRole('textbox', { name: /^name/i })
