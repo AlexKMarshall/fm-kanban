@@ -13,7 +13,6 @@ import {
   Link,
   Outlet,
   useActionData,
-  useNavigate,
   useNavigation,
   useSearchParams,
 } from '@remix-run/react'
@@ -107,18 +106,17 @@ export default function Home() {
     INTENTS.createBoard.value
 
   const [searchParams, setSearchParams] = useSearchParams()
-  const isCreateBoardModalOpen = searchParams.has('boardAddDialog')
 
   return (
     <>
       <Modal
         isDismissable
-        isOpen={isCreateBoardModalOpen}
+        isOpen={searchParams.get('modal') === 'create-board'}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setSearchParams((prev) => {
               const updated = new URLSearchParams(prev)
-              updated.delete('boardAddDialog')
+              updated.delete('modal')
               return updated
             })
           }
@@ -237,7 +235,7 @@ function BoardsNav({
   boards: BoardsLoaderData['boards']
   className?: string
 }) {
-  const navigate = useNavigate()
+  const [, setSearchParams] = useSearchParams()
 
   return (
     <nav className={className}>
@@ -261,10 +259,12 @@ function BoardsNav({
       </ul>
 
       <button
-        name="boardAddDialog"
-        value="open"
         onClick={() => {
-          navigate({ search: 'boardAddDialog=open' })
+          setSearchParams((prev) => {
+            const updated = new URLSearchParams(prev)
+            updated.set('modal', 'create-board')
+            return updated
+          })
         }}
         className="flex items-start gap-3 py-3 text-left font-bold text-indigo-700"
       >
