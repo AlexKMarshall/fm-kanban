@@ -29,6 +29,8 @@ import { prisma } from '~/db/prisma.server'
 import { Button, IconButton } from '~/ui/button'
 import { CloseButton, Dialog, DialogTitle, Modal } from '~/ui/dialog'
 import { FieldError } from '~/ui/field-error'
+import { BoardIcon } from '~/ui/icons/BoardIcon'
+import { ChevronDownIcon } from '~/ui/icons/ChevronDownIcon'
 import { VerticalEllipsisIcon } from '~/ui/icons/VerticalEllipsisIcon'
 import { Input } from '~/ui/input'
 import { Label, Legend } from '~/ui/label'
@@ -44,7 +46,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const accountId = await requireAuthCookie(request)
   const { id } = paramsSchema.parse(params)
 
-  const board = await getBoard({ id, accountId })
+  const [board, allBoards] = await Promise.all([
+    getBoard({ id, accountId }),
+    getBoards(accountId),
+  ])
   if (!board) {
     throw new Response('Board not found', {
       status: 404,
@@ -52,7 +57,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     })
   }
 
-  return json({ board })
+  return json({ board, allBoards })
 }
 
 const INTENTS = {
@@ -404,20 +409,91 @@ export default function Board() {
 }
 
 function Header({
-  loaderData: { board },
+  loaderData: { board, allBoards },
 }: {
   loaderData: SerializeFrom<typeof loader>
 }) {
-  const [, setSearchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   return (
     <div className="flex items-center gap-6 ">
+      <h1 className="sm:hidden">
+        <button
+          type="button"
+          className="flex items-start gap-2 text-left text-lg font-bold"
+          onClick={() => {
+            setSearchParams((prev) => {
+              const updated = new URLSearchParams(prev)
+              updated.set('modal', 'mobile-nav')
+              return updated
+            })
+          }}
+        >
+          {board.name}{' '}
+          <span className={board.name ? 'sr-only' : ''}>Select a board</span>
+          <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+            <ChevronDownIcon className="text-indigo-700" />
+          </span>
+        </button>
+      </h1>
+      <Modal
+        isDismissable
+        isOpen={searchParams.get('modal') === 'mobile-nav'}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setSearchParams((prev) => {
+              const updated = new URLSearchParams(prev)
+              updated.delete('modal')
+              return updated
+            })
+          }
+        }}
+      >
+        <Dialog>
+          <DialogTitle className="sr-only">Select a board</DialogTitle>
+          <nav>
+            <p className="mb-5 text-xs font-bold uppercase text-gray-700">
+              All boards ({allBoards.length})
+            </p>
+            <ul>
+              {allBoards.map((board) => (
+                <li key={board.id}>
+                  <Link
+                    to={`/boards/${board.id}`}
+                    className="flex items-start gap-3 py-3 font-bold text-gray-700 aria-[current]:bg-indigo-700 aria-[current]:text-white"
+                  >
+                    <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+                      <BoardIcon />
+                    </span>
+                    {board.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => {
+                setSearchParams((prev) => {
+                  const updated = new URLSearchParams(prev)
+                  updated.set('modal', 'create-board')
+                  return updated
+                })
+              }}
+              className="flex items-start gap-3 py-3 text-left font-bold text-indigo-700"
+            >
+              <span className="flex shrink-0 items-center justify-center before:invisible before:w-0 before:content-['A']">
+                <BoardIcon />{' '}
+              </span>
+              +&nbsp;Create New Board
+            </button>
+          </nav>
+        </Dialog>
+      </Modal>
       <h1 className="hidden text-xl font-bold sm:block">{board.name}</h1>
       <ButtonLink
         aria-disabled={board.columns.length === 0}
         to={`boards/${board.id}/tasks/add`}
         className="text-default ml-auto bg-indigo-700 text-white aria-disabled:bg-indigo-300"
       >
-        + Add New Task
+        + <span className="sr-only sm:not-sr-only">Add New Task</span>
       </ButtonLink>
       <MenuTrigger>
         <IconButton aria-label="Board menu">
@@ -479,6 +555,14 @@ function getBoard({ id, accountId }: { id: string; accountId: string }) {
           },
         },
       },
+    },
+  })
+}
+
+function getBoards(userId: string) {
+  return prisma.board.findMany({
+    where: {
+      ownerId: userId,
     },
   })
 }

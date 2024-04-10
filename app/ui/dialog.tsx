@@ -21,10 +21,16 @@ export function Modal({
     <ModalOverlay
       {...props}
       className={tv({
-        base: 'fixed inset-0 z-50 flex items-center justify-center bg-gray-700/50',
+        base: 'fixed inset-0 z-50 flex items-center justify-center bg-gray-700/50 p-[--gutter] [--gutter:1rem] sm:[--gutter:2rem]',
       })({ className })}
     >
-      <RACModal>{children}</RACModal>
+      {/* 
+        Have to do the max height hack here as flex and grid children can break out of their parents height.
+        Effectively that means the modal could've gone offscreen and not be accessible scrolling 
+      */}
+      <RACModal className="max-h-[calc(100dvh_-_calc(2_*_var(--gutter)))] basis-[30rem] overflow-auto rounded-md bg-white">
+        {children}
+      </RACModal>
     </ModalOverlay>
   )
 }
@@ -38,7 +44,7 @@ export function Dialog({
     <RACDialog
       {...props}
       className={tv({
-        base: 'm-4 w-[30rem] max-w-full rounded-md bg-white p-6 sm:p-8',
+        base: 'p-6 sm:p-8',
       })({ className })}
     >
       {children}
