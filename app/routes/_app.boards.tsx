@@ -128,7 +128,6 @@ export default function Home() {
             method="post"
             {...getFormProps(form)}
             className="flex flex-col gap-6"
-            aria-labelledby="create-board-dialog-title"
           >
             {/* We need this button first in the form to be the default onEnter submission */}
             <button

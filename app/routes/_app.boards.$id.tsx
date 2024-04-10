@@ -276,7 +276,6 @@ export default function Board() {
             method="post"
             {...getFormProps(editForm)}
             className="flex flex-col gap-6"
-            aria-labelledby="create-board-dialog-title"
           >
             {/* We need this button first in the form to be the default onEnter submission */}
             <button
