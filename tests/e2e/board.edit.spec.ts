@@ -110,40 +110,40 @@ test(
   },
 )
 
-test('remove a column', async ({ page, createBoard, createTasks }) => {
-  // Deleting a column also deletes any tasks inside it
-  const column = makeColumn()
-  const board = await createBoard({ columns: [column] })
-  const task = makeTask()
-  await createTasks({ boardId: board.id, columnId: column.id, ...task })
+test(
+  'remove a column',
+  { tag: '@mobile-ready' },
+  async ({ page, createBoard, createTasks, kanbanPage }) => {
+    // Deleting a column also deletes any tasks inside it
+    const column = makeColumn()
+    const board = await createBoard({ columns: [column] })
+    const task = makeTask()
+    await createTasks({ boardId: board.id, columnId: column.id, ...task })
 
-  await page.goto('/')
-  await page.getByRole('link', { name: board.name }).click()
+    const boardPage = await kanbanPage.gotoBoard(board.name)
 
-  // Task is in the column
-  await expect(
-    page
-      .getByRole('listitem')
-      .filter({ has: page.getByRole('heading', { name: column.name }) })
-      .getByRole('listitem')
-      .filter({ has: page.getByRole('heading', { name: task.title }) }),
-  ).toBeVisible()
+    // Task is in the column
+    await expect(
+      page
+        .getByRole('listitem')
+        .filter({ has: page.getByRole('heading', { name: column.name }) })
+        .getByRole('listitem')
+        .filter({ has: page.getByRole('heading', { name: task.title }) }),
+    ).toBeVisible()
 
-  await page.getByRole('button', { name: /board menu/i }).click()
-  await page.getByRole('menuitem', { name: /edit board/i }).click()
+    const editBoardDialog = await boardPage.openEditBoardDialog()
+    await expect(editBoardDialog).toBeVisible()
 
-  const dialog = page.getByRole('dialog', { name: /edit board/i })
-  await expect(dialog).toBeVisible()
+    // Remove the column
+    await editBoardDialog.getByRole('button', { name: /remove/i }).click()
 
-  // Remove the column
-  await dialog.getByRole('button', { name: /remove/i }).click()
+    await editBoardDialog.getByRole('button', { name: /save changes/i }).click()
 
-  await dialog.getByRole('button', { name: /save changes/i }).click()
+    await expect(editBoardDialog).toBeHidden()
 
-  await expect(dialog).toBeHidden()
-
-  // Column is no longer visible
-  await expect(page.getByRole('heading', { name: column.name })).toBeHidden()
-  // Task is no longer visible
-  await expect(page.getByRole('heading', { name: task.title })).toBeHidden()
-})
+    // Column is no longer visible
+    await expect(page.getByRole('heading', { name: column.name })).toBeHidden()
+    // Task is no longer visible
+    await expect(page.getByRole('heading', { name: task.title })).toBeHidden()
+  },
+)
