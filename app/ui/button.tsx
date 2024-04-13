@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, forwardRef } from 'react'
+import { ComponentPropsWithoutRef, ElementRef, forwardRef } from 'react'
 import { Button as RACButton } from 'react-aria-components'
 import { tv } from 'tailwind-variants'
 
@@ -7,7 +7,7 @@ export const buttonVariants = tv({
 })
 
 export const Button = forwardRef<
-  HTMLButtonElement,
+  ElementRef<typeof RACButton>,
   Omit<ComponentPropsWithoutRef<typeof RACButton>, 'className'> & {
     className?: string
   }

@@ -138,11 +138,93 @@ function makeCreateTasksFixture() {
 }
 type CreateTasksFixture = ReturnType<typeof makeCreateTasksFixture>
 
+function makeIsSmallScreenFixture({ page }: { page: Page }) {
+  return function isSmallScreen() {
+    const viewportWidth = page.viewportSize()?.width
+    if (!viewportWidth) {
+      throw new Error('Viewport width is not set')
+    }
+
+    // Ideally we'd get this from the tailwind config somehow
+    return viewportWidth < 640
+  }
+}
+type IsSmallScreenFixture = ReturnType<typeof makeIsSmallScreenFixture>
+
+class KanbanPageObject {
+  constructor(
+    private page: Page,
+    private isSmallScreen: IsSmallScreenFixture,
+  ) {}
+
+  async gotoHome() {
+    await this.page.goto('/')
+  }
+
+  async openMobileNav() {
+    await this.page.getByRole('button', { name: /select a board/i }).click()
+    return this.page.getByRole('navigation')
+  }
+
+  async gotoBoard(boardName: string | RegExp) {
+    await this.gotoHome()
+
+    // On small screens the board navigation is nested inside the mobile nav dialog
+    if (this.isSmallScreen()) {
+      await this.openMobileNav()
+    }
+    await this.page.getByRole('link', { name: boardName }).click()
+
+    return new BoardPageObject(this.page)
+  }
+
+  async openCreateBoardDialog() {
+    // On small screens, the create board button is nested inside the select a board mobile nav dialog
+    if (this.isSmallScreen()) {
+      await this.openMobileNav()
+    }
+    await this.page.getByRole('button', { name: /create new board/i }).click()
+
+    return this.page.getByRole('dialog', { name: /add new board/i })
+  }
+
+  async getBoardNav() {
+    if (this.isSmallScreen()) {
+      return this.openMobileNav()
+    }
+    return this.page.getByRole('navigation')
+  }
+}
+
+class BoardPageObject {
+  constructor(private page: Page) {}
+
+  async openBoardMenu() {
+    await this.page.getByRole('button', { name: /board menu/i }).click()
+  }
+
+  async openEditBoardDialog() {
+    await this.openBoardMenu()
+    await this.page.getByRole('menuitem', { name: /edit board/i }).click()
+
+    return this.page.getByRole('dialog', { name: /edit board/i })
+  }
+
+  async openDeleteBoardDialog() {
+    await this.openBoardMenu()
+    await this.page.getByRole('menuitem', { name: /delete board/i }).click()
+
+    return this.page.getByRole('alertdialog', { name: /delete this board/i })
+  }
+}
+
 export const test = base.extend<{
   signUp: SignUpFixture
   login: LoginFixture
   createBoard: CreateBoardFixture
   createTasks: CreateTasksFixture
+  kanbanPage: KanbanPageObject
+  isSmallScreen: IsSmallScreenFixture
 }>({
   signUp: async ({}, use) => {
     let accountId = ''
@@ -178,6 +260,12 @@ export const test = base.extend<{
     await use(page)
     expect(consoleErrors).toHaveLength(0)
     expect(consoleWarnings).toHaveLength(0)
+  },
+  isSmallScreen: async ({ page }, use) => {
+    await use(makeIsSmallScreenFixture({ page }))
+  },
+  kanbanPage: async ({ page, isSmallScreen }, use) => {
+    await use(new KanbanPageObject(page, isSmallScreen))
   },
 })
 
