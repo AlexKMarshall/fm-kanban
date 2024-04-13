@@ -4,29 +4,38 @@ import { makeColumn, makeTask } from 'tests/factories/board'
 
 import { expect, test } from '../playwright-utils'
 
-test('edit board title', async ({ page, createBoard }) => {
-  const board = await createBoard()
+test(
+  'edit board title',
+  { tag: '@mobile-ready' },
+  async ({ page, kanbanPage, createBoard }) => {
+    const board = await createBoard()
+    const originalName = board.name
 
-  await page.goto('/')
-  await page.getByRole('link', { name: board.name }).click()
+    const boardPage = await kanbanPage.gotoBoard(originalName)
 
-  await expect(page.getByRole('heading', { name: board.name })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: originalName }),
+    ).toBeVisible()
 
-  await page.getByRole('button', { name: /board menu/i }).click()
-  await page.getByRole('menuitem', { name: /edit board/i }).click()
+    const editBoardDialog = await boardPage.openEditBoardDialog()
 
-  const dialog = page.getByRole('dialog', { name: /edit board/i })
-  await expect(dialog).toBeVisible()
+    await expect(editBoardDialog).toBeVisible()
 
-  const newName = faker.lorem.words()
-  await dialog.getByRole('textbox', { name: /^name/i }).fill(newName)
-  await dialog.getByRole('button', { name: /save changes/i }).click()
+    const newName = faker.lorem.words()
+    await editBoardDialog.getByRole('textbox', { name: /^name/i }).fill(newName)
+    await editBoardDialog.getByRole('button', { name: /save changes/i }).click()
 
-  await expect(dialog).toBeHidden()
-  await expect(page.getByRole('link', { name: newName })).toBeVisible()
-  await expect(page.getByRole('heading', { name: newName })).toBeVisible()
-  await expect(page.getByRole('link', { name: board.name })).toBeHidden()
-})
+    await expect(editBoardDialog).toBeHidden()
+    await expect(page.getByRole('heading', { name: newName })).toBeVisible()
+
+    const boardNav = await kanbanPage.getBoardNav()
+
+    await expect(
+      boardNav.getByRole('link', { name: originalName }),
+    ).toBeHidden()
+    await expect(boardNav.getByRole('link', { name: newName })).toBeVisible()
+  },
+)
 
 test('add a column', async ({ page, createBoard }) => {
   const board = await createBoard()
