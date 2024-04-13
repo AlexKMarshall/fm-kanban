@@ -37,31 +37,35 @@ test(
   },
 )
 
-test('add a column', async ({ page, createBoard }) => {
-  const board = await createBoard()
+test(
+  'add a column',
+  { tag: '@mobile-ready' },
+  async ({ page, kanbanPage, createBoard }) => {
+    const board = await createBoard()
 
-  await page.goto('/')
-  await page.getByRole('link', { name: board.name }).click()
+    const boardPage = await kanbanPage.gotoBoard(board.name)
 
-  await page.getByRole('button', { name: /board menu/i }).click()
-  await page.getByRole('menuitem', { name: /edit board/i }).click()
+    const editBoardDialog = await boardPage.openEditBoardDialog()
+    await expect(editBoardDialog).toBeVisible()
 
-  const dialog = page.getByRole('dialog', { name: /edit board/i })
-  await expect(dialog).toBeVisible()
+    await editBoardDialog
+      .getByRole('button', { name: /add new column/i })
+      .click()
 
-  await dialog.getByRole('button', { name: /add new column/i }).click()
+    const newColumnName = faker.lorem.words()
+    await editBoardDialog
+      .getByRole('textbox', { name: /column name/i })
+      .last()
+      .fill(newColumnName)
+    await editBoardDialog.getByRole('button', { name: /save changes/i }).click()
 
-  const newColumnName = faker.lorem.words()
-  await dialog
-    .getByRole('textbox', { name: /column name/i })
-    .last()
-    .fill(newColumnName)
-  await dialog.getByRole('button', { name: /save changes/i }).click()
+    await expect(editBoardDialog).toBeHidden()
 
-  await expect(dialog).toBeHidden()
-
-  await expect(page.getByRole('heading', { name: newColumnName })).toBeVisible()
-})
+    await expect(
+      page.getByRole('heading', { name: newColumnName }),
+    ).toBeVisible()
+  },
+)
 
 test('update existing column name', async ({
   page,
