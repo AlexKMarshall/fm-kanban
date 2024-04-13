@@ -138,11 +138,50 @@ function makeCreateTasksFixture() {
 }
 type CreateTasksFixture = ReturnType<typeof makeCreateTasksFixture>
 
+class KanbanPageObject {
+  constructor(private page: Page) {}
+
+  #isSmallScreen() {
+    const viewportWidth = this.page.viewportSize()?.width
+    if (!viewportWidth) {
+      throw new Error('Viewport width is not set')
+    }
+
+    // Ideally we'd get this from the tailwind config somehow
+    return viewportWidth < 640
+  }
+
+  async gotoHome() {
+    await this.page.goto('/')
+  }
+
+  async gotoBoard(boardName: string | RegExp) {
+    await this.gotoHome()
+
+    // On small screens the board navigation is nested inside the mobile nav dialog
+    if (this.#isSmallScreen()) {
+      await this.page.getByRole('button', { name: /select a board/i }).click()
+    }
+    await this.page.getByRole('link', { name: boardName }).click()
+  }
+
+  async openCreateBoardDialog() {
+    // On small screens, the create board button is nested inside the select a board mobile nav dialog
+    if (this.#isSmallScreen()) {
+      await this.page.getByRole('button', { name: /select a board/i }).click()
+    }
+    await this.page.getByRole('button', { name: /create new board/i }).click()
+
+    return this.page.getByRole('dialog', { name: /add new board/i })
+  }
+}
+
 export const test = base.extend<{
   signUp: SignUpFixture
   login: LoginFixture
   createBoard: CreateBoardFixture
   createTasks: CreateTasksFixture
+  kanbanPage: KanbanPageObject
 }>({
   signUp: async ({}, use) => {
     let accountId = ''
@@ -178,6 +217,9 @@ export const test = base.extend<{
     await use(page)
     expect(consoleErrors).toHaveLength(0)
     expect(consoleWarnings).toHaveLength(0)
+  },
+  kanbanPage: async ({ page }, use) => {
+    await use(new KanbanPageObject(page))
   },
 })
 
