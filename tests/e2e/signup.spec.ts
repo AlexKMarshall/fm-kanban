@@ -14,7 +14,7 @@ function makeUser(overrides?: Partial<User>): User {
   }
 }
 
-test('Sign up flow', { tag: '@mobile-ready' }, async ({ page }) => {
+test('Sign up flow', async ({ page }) => {
   await page.goto('/')
   const user = makeUser()
 
