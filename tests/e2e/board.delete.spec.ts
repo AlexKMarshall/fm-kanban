@@ -1,19 +1,18 @@
 import { expect, test } from '../playwright-utils'
 
-test('delete board', async ({ page, kanbanPage, createBoard }) => {
+test('delete board', async ({ kanbanPage, createBoard }) => {
   const board = await createBoard()
 
-  await kanbanPage.gotoBoard(board.name)
+  const boardPage = await kanbanPage.gotoBoard(board.name)
 
-  await page.getByRole('button', { name: /board menu/i }).click()
-  await page.getByRole('menuitem', { name: /delete board/i }).click()
-  const confirmationDialog = page.getByRole('alertdialog', {
-    name: /delete this board/i,
-  })
+  const confirmationDialog = await boardPage.openDeleteBoardDialog()
   await expect(confirmationDialog).toBeVisible()
   await confirmationDialog.getByRole('button', { name: /delete/i }).click()
   await expect(confirmationDialog).toBeHidden()
 
-  await expect(page.getByText(/please select or create a board/i)).toBeVisible()
-  await expect(page.getByRole('link', { name: board.name })).toBeHidden()
+  await expect(
+    kanbanPage._page.getByText(/please select or create a board/i),
+  ).toBeVisible()
+  const boardNav = await kanbanPage.getBoardNav()
+  await expect(boardNav.getByRole('link', { name: board.name })).toBeHidden()
 })

@@ -4,24 +4,22 @@ import { makeColumn, makeTask } from 'tests/factories/board'
 
 import { expect, test } from '../playwright-utils'
 
-test('edit board title', async ({ page, kanbanPage, createBoard }) => {
+test('edit board title', async ({ kanbanPage, createBoard }) => {
   const board = await createBoard()
   const originalName = board.name
 
   const boardPage = await kanbanPage.gotoBoard(originalName)
 
-  await expect(page.getByRole('heading', { name: originalName })).toBeVisible()
+  await expect(boardPage.getBoardHeading(originalName)).toBeVisible()
 
   const editBoardDialog = await boardPage.openEditBoardDialog()
 
-  await expect(editBoardDialog).toBeVisible()
-
   const newName = faker.lorem.words()
-  await editBoardDialog.getByRole('textbox', { name: /^name/i }).fill(newName)
-  await editBoardDialog.getByRole('button', { name: /save changes/i }).click()
+  await editBoardDialog.nameField.fill(newName)
+  await editBoardDialog.save()
 
-  await expect(editBoardDialog).toBeHidden()
-  await expect(page.getByRole('heading', { name: newName })).toBeVisible()
+  await expect(editBoardDialog._dialog).toBeHidden()
+  await expect(boardPage.getBoardHeading(newName)).toBeVisible()
 
   const boardNav = await kanbanPage.getBoardNav()
 
@@ -35,18 +33,14 @@ test('add a column', async ({ page, kanbanPage, createBoard }) => {
   const boardPage = await kanbanPage.gotoBoard(board.name)
 
   const editBoardDialog = await boardPage.openEditBoardDialog()
-  await expect(editBoardDialog).toBeVisible()
 
-  await editBoardDialog.getByRole('button', { name: /add new column/i }).click()
+  await editBoardDialog.addNewColumn()
 
   const newColumnName = faker.lorem.words()
-  await editBoardDialog
-    .getByRole('textbox', { name: /column name/i })
-    .last()
-    .fill(newColumnName)
-  await editBoardDialog.getByRole('button', { name: /save changes/i }).click()
+  await editBoardDialog.columnFields.last().fill(newColumnName)
+  await editBoardDialog.save()
 
-  await expect(editBoardDialog).toBeHidden()
+  await expect(editBoardDialog._dialog).toBeHidden()
 
   await expect(page.getByRole('heading', { name: newColumnName })).toBeVisible()
 })
@@ -66,30 +60,25 @@ test('update existing column name', async ({
 
   // Task is in the column with the original name
   await expect(
-    page
-      .getByRole('listitem')
-      .filter({ has: page.getByRole('heading', { name: column.name }) })
+    boardPage
+      .getColumn(column.name)
       .getByRole('listitem')
       .filter({ has: page.getByRole('heading', { name: task.title }) }),
   ).toBeVisible()
 
   const editBoardDialog = await boardPage.openEditBoardDialog()
-  await expect(editBoardDialog).toBeVisible()
 
   // Update the name
   const newColumnName = faker.lorem.words()
-  await editBoardDialog
-    .getByRole('textbox', { name: /column name/i })
-    .fill(newColumnName)
-  await editBoardDialog.getByRole('button', { name: /save changes/i }).click()
+  await editBoardDialog.columnFields.first().fill(newColumnName)
+  await editBoardDialog.save()
 
-  await expect(editBoardDialog).toBeHidden()
+  await expect(editBoardDialog._dialog).toBeHidden()
 
   // Task is still visible, in column with new name
   await expect(
-    page
-      .getByRole('listitem')
-      .filter({ has: page.getByRole('heading', { name: newColumnName }) })
+    boardPage
+      .getColumn(newColumnName)
       .getByRole('listitem')
       .filter({ has: page.getByRole('heading', { name: task.title }) }),
   ).toBeVisible()
@@ -111,25 +100,22 @@ test('remove a column', async ({
 
   // Task is in the column
   await expect(
-    page
-      .getByRole('listitem')
-      .filter({ has: page.getByRole('heading', { name: column.name }) })
+    boardPage
+      .getColumn(column.name)
       .getByRole('listitem')
       .filter({ has: page.getByRole('heading', { name: task.title }) }),
   ).toBeVisible()
 
   const editBoardDialog = await boardPage.openEditBoardDialog()
-  await expect(editBoardDialog).toBeVisible()
 
   // Remove the column
-  await editBoardDialog.getByRole('button', { name: /remove/i }).click()
+  await editBoardDialog._dialog.getByRole('button', { name: /remove/i }).click()
 
-  await editBoardDialog.getByRole('button', { name: /save changes/i }).click()
-
-  await expect(editBoardDialog).toBeHidden()
+  await editBoardDialog.save()
+  await expect(editBoardDialog._dialog).toBeHidden()
 
   // Column is no longer visible
-  await expect(page.getByRole('heading', { name: column.name })).toBeHidden()
+  await expect(boardPage.getColumn(column.name)).toBeHidden()
   // Task is no longer visible
   await expect(page.getByRole('heading', { name: task.title })).toBeHidden()
 })

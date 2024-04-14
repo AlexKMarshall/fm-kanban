@@ -157,6 +157,10 @@ class KanbanPageObject {
     private isSmallScreen: IsSmallScreenFixture,
   ) {}
 
+  get _page() {
+    return this.page
+  }
+
   async gotoHome() {
     await this.page.goto('/')
   }
@@ -189,8 +193,6 @@ class KanbanPageObject {
       this.page,
       this.page.getByRole('dialog', { name: /add new board/i }),
     )
-
-    // return this.page.getByRole('dialog', { name: /add new board/i })
   }
 
   async getBoardNav() {
@@ -226,6 +228,33 @@ class CreateBoardDialog {
   }
 }
 
+class EditBoardDialog {
+  constructor(
+    private page: Page,
+    private dialog: Locator,
+  ) {}
+
+  get _dialog() {
+    return this.dialog
+  }
+
+  get nameField() {
+    return this.dialog.getByRole('textbox', { name: /^name/i })
+  }
+
+  addNewColumn() {
+    return this.dialog.getByRole('button', { name: /add new column/i }).click()
+  }
+
+  get columnFields() {
+    return this.dialog.getByRole('textbox', { name: /column name/i })
+  }
+
+  save() {
+    return this.dialog.getByRole('button', { name: /save changes/i }).click()
+  }
+}
+
 class BoardPageObject {
   constructor(private page: Page) {}
 
@@ -247,7 +276,10 @@ class BoardPageObject {
     await this.openBoardMenu()
     await this.page.getByRole('menuitem', { name: /edit board/i }).click()
 
-    return this.page.getByRole('dialog', { name: /edit board/i })
+    return new EditBoardDialog(
+      this.page,
+      this.page.getByRole('dialog', { name: /edit board/i }),
+    )
   }
 
   async openDeleteBoardDialog() {
