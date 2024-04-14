@@ -110,6 +110,16 @@ export default [
     rules: {
       ...jsxA11yPlugin.configs.recommended.rules,
     },
+    settings: {
+      formComponents: ['Form'],
+      linkComponents: [
+        { name: 'Link', linkAttribute: 'to' },
+        { name: 'NavLink', linkAttribute: 'to' },
+      ],
+      'import/resolver': {
+        typescript: {},
+      },
+    },
   },
   // {
   //   // React
