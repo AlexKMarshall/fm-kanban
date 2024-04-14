@@ -1,8 +1,8 @@
 import js from '@eslint/js'
 import ts from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
-import prettierConfig from 'eslint-config-prettier'
-import react from 'eslint-plugin-react'
+// import prettierConfig from 'eslint-config-prettier'
+// import react from 'eslint-plugin-react'
 // import { FlatCompat } from '@eslint/eslintrc'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -37,6 +37,12 @@ export default [
       ...js.configs.recommended.rules,
       'no-console': ['warn', { allow: ['error', 'warn'] }],
     },
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+      },
+    },
   },
   {
     files: ['**/*.{ts,tsx}'],
@@ -58,6 +64,14 @@ export default [
     },
   },
 
+  {
+    files: ['.eslintrc.cjs'],
+    languageOptions: {
+      globals: {
+        __dirname: 'readonly',
+      },
+    },
+  },
   // {
   //   // React
   //   files: ['**/*.{js,jsx,ts,tsx}'],
