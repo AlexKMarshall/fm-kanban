@@ -1,8 +1,12 @@
+import reactHooksPlugin from 'eslint-plugin-react-hooks'
+
 import js from '@eslint/js'
 import ts from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 // import prettierConfig from 'eslint-config-prettier'
-// import react from 'eslint-plugin-react'
+import globals from 'globals'
+import reactRecommended from 'eslint-plugin-react/configs/recommended.js'
+import reactJsxRuntime from 'eslint-plugin-react/configs/jsx-runtime.js'
 // import { FlatCompat } from '@eslint/eslintrc'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -65,11 +69,36 @@ export default [
   },
 
   {
+    // TODO: delete once fully migrated
     files: ['.eslintrc.cjs'],
     languageOptions: {
       globals: {
         __dirname: 'readonly',
       },
+    },
+  },
+  {
+    // React
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    ...reactRecommended,
+    ...reactJsxRuntime,
+    languageOptions: {
+      ...reactRecommended.languageOptions,
+      ...reactJsxRuntime.languageOptions,
+      globals: {
+        ...globals.browser,
+        ...globals.serviceWorker,
+      },
+    },
+  },
+  {
+    // React hooks
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    plugins: {
+      'react-hooks': reactHooksPlugin,
+    },
+    rules: {
+      ...reactHooksPlugin.configs.recommended.rules,
     },
   },
   // {

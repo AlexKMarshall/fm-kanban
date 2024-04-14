@@ -145,6 +145,9 @@ devDependencies:
   eslint-plugin-storybook:
     specifier: 0.8.0
     version: 0.8.0(eslint@8.57.0)(typescript@5.4.5)
+  globals:
+    specifier: ^15.0.0
+    version: 15.0.0
   husky:
     specifier: 9.0.11
     version: 9.0.11
@@ -7959,6 +7962,11 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       type-fest: 0.20.2
+    dev: true
+
+  /globals@15.0.0:
+    resolution: {integrity: sha512-m/C/yR4mjO6pXDTm9/R/SpYTAIyaUB4EOzcaaMEl7mds7Mshct9GfejiJNQGjHHbdMPey13Kpu4TMbYi9ex1pw==}
+    engines: {node: '>=18'}
     dev: true
 
   /globalthis@1.0.3:
