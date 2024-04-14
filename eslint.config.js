@@ -1,3 +1,4 @@
+import jsxA11yPlugin from 'eslint-plugin-jsx-a11y'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 
 import js from '@eslint/js'
@@ -99,6 +100,15 @@ export default [
     },
     rules: {
       ...reactHooksPlugin.configs.recommended.rules,
+    },
+  },
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    plugins: {
+      'jsx-a11y': jsxA11yPlugin,
+    },
+    rules: {
+      ...jsxA11yPlugin.configs.recommended.rules,
     },
   },
   // {
