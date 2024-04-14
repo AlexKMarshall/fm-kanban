@@ -26,6 +26,9 @@ export default [
       'test-results/**',
       'playwright-report/**',
       '.turbo/**',
+      // TODO: figure out why tsconfig isn't picking these up, and lint them
+      // but for now there's only 2 files in there, so 🤷‍♂️
+      '.storybook/**',
     ],
   },
   {
@@ -35,25 +38,25 @@ export default [
       'no-console': ['warn', { allow: ['error', 'warn'] }],
     },
   },
-  // {
-  //   files: ['**/*.{ts,tsx}'],
-  //   languageOptions: {
-  //     parser: tsParser,
-  //     parserOptions: {
-  //       ecmaFeatures: { modules: true, jsx: true },
-  //       ecmaVersion: 'latest',
-  //       project: './tsconfig.json',
-  //       tsconfigRootDir: __dirname,
-  //     },
-  //   },
-  //   plugins: {
-  //     '@typescript-eslint': ts,
-  //   },
-  //   rules: {
-  //     ...ts.configs['eslint-recommended'].rules,
-  //     ...ts.configs['recommended'].rules,
-  //   },
-  // },
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaFeatures: { modules: true, jsx: true },
+        ecmaVersion: 'latest',
+        project: './tsconfig.json',
+        tsconfigRootDir: __dirname,
+      },
+    },
+    plugins: {
+      '@typescript-eslint': ts,
+    },
+    rules: {
+      ...ts.configs['eslint-recommended'].rules,
+      ...ts.configs['recommended'].rules,
+    },
+  },
 
   // {
   //   // React
