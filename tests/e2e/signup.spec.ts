@@ -9,7 +9,7 @@ type User = {
 function makeUser(overrides?: Partial<User>): User {
   return {
     email: faker.internet.email(),
-    password: faker.internet.password(),
+    password: faker.internet.password({ prefix: 'aA1' }),
     ...overrides,
   }
 }

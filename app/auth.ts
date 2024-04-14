@@ -27,7 +27,7 @@ export const authCookie = createCookie('auth', {
   path: '/',
   sameSite: 'lax',
   secrets: [cookieSecret],
-  secure: process.env.NODE_ENV === 'production',
+  secure: process.env.NODE_ENV === 'production' && !process.env.CI,
   maxAge: 60 * 60 * 24 * 30, // 30 days
 })
 
