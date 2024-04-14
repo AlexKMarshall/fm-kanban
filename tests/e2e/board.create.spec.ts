@@ -46,7 +46,6 @@ test('create board with no columns', async ({ kanbanPage, login }) => {
 
 test('board name is required', async ({ login, kanbanPage }) => {
   await login()
-
   await kanbanPage.gotoHome()
   const createBoardDialog = await kanbanPage.openCreateBoardDialog()
 
