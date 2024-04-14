@@ -2,7 +2,7 @@ import { makeBoard } from 'tests/factories/board'
 
 import { expect, test } from '../playwright-utils'
 
-test('create board', async ({ kanbanPage, page, login }) => {
+test('create board', async ({ kanbanPage, login }) => {
   const board = makeBoard()
   await login()
 
@@ -10,50 +10,37 @@ test('create board', async ({ kanbanPage, page, login }) => {
 
   const createBoardDialog = await kanbanPage.openCreateBoardDialog()
 
-  await createBoardDialog
-    .getByRole('textbox', { name: /^name/i })
-    .fill(board.name)
+  await createBoardDialog.nameField.fill(board.name)
 
   for (let i = 0; i < board.columns.length; i++) {
     const column = board.columns[i]
     if (i > 0) {
-      await createBoardDialog
-        .getByRole('button', { name: /add new column/i })
-        .click()
+      await createBoardDialog.addNewColumn()
     }
-    await createBoardDialog
-      .getByRole('textbox', { name: /column name/i })
-      .last()
-      .fill(column.name)
+    await createBoardDialog.columnFields.last().fill(column.name)
   }
 
-  await createBoardDialog
-    .getByRole('button', { name: /create new board/i })
-    .click()
+  const boardPage = await createBoardDialog.save()
 
-  await expect(page.getByRole('heading', { name: board.name })).toBeVisible()
+  await expect(boardPage.getBoardHeading(board.name)).toBeVisible()
   for (const column of board.columns) {
-    await expect(page.getByRole('heading', { name: column.name })).toBeVisible()
+    await expect(boardPage.getColumn(column.name)).toBeVisible()
   }
 })
 
-test('create board with no columns', async ({ page, kanbanPage, login }) => {
+test('create board with no columns', async ({ kanbanPage, login }) => {
   const boardWithoutColumns = makeBoard({ columns: [] })
   await login()
 
   await kanbanPage.gotoHome()
   const createBoardDialog = await kanbanPage.openCreateBoardDialog()
 
-  await createBoardDialog
-    .getByRole('textbox', { name: /^name/i })
-    .fill(boardWithoutColumns.name)
+  await createBoardDialog.nameField.fill(boardWithoutColumns.name)
 
-  await createBoardDialog
-    .getByRole('button', { name: /create new board/i })
-    .click()
+  const boardPage = await createBoardDialog.save()
 
   await expect(
-    page.getByRole('heading', { name: boardWithoutColumns.name }),
+    boardPage.getBoardHeading(boardWithoutColumns.name),
   ).toBeVisible()
 })
 
@@ -63,11 +50,9 @@ test('board name is required', async ({ login, kanbanPage }) => {
   await kanbanPage.gotoHome()
   const createBoardDialog = await kanbanPage.openCreateBoardDialog()
 
-  await createBoardDialog
-    .getByRole('button', { name: /create new board/i })
-    .click()
+  await createBoardDialog.save()
 
-  const nameField = createBoardDialog.getByRole('textbox', { name: /^name/i })
+  const nameField = createBoardDialog.nameField
   await expect(nameField).toBeAriaInvalid()
   await expect(nameField).toBeDescribedBy("Can't be empty")
 })
