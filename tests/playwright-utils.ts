@@ -10,7 +10,7 @@ import { authCookie, getNewSalt, hashPassword } from '~/auth'
 import { prisma } from '~/db/prisma.server'
 
 import { makeAccount } from './factories/account'
-import { Board, makeBoard, makeTask } from './factories/board'
+import { type Board, makeBoard, makeTask } from './factories/board'
 
 type Account = {
   id: string
@@ -157,6 +157,10 @@ class KanbanPageObject {
     private isSmallScreen: IsSmallScreenFixture,
   ) {}
 
+  get _page() {
+    return this.page
+  }
+
   async gotoHome() {
     await this.page.goto('/')
   }
@@ -185,7 +189,10 @@ class KanbanPageObject {
     }
     await this.page.getByRole('button', { name: /create new board/i }).click()
 
-    return this.page.getByRole('dialog', { name: /add new board/i })
+    return new CreateBoardDialog(
+      this.page,
+      this.page.getByRole('dialog', { name: /add new board/i }),
+    )
   }
 
   async getBoardNav() {
@@ -196,8 +203,70 @@ class KanbanPageObject {
   }
 }
 
+class CreateBoardDialog {
+  constructor(
+    private page: Page,
+    private dialog: Locator,
+  ) {}
+
+  get nameField() {
+    return this.dialog.getByRole('textbox', { name: /^name/i })
+  }
+
+  addNewColumn() {
+    return this.dialog.getByRole('button', { name: /add new column/i }).click()
+  }
+
+  get columnFields() {
+    return this.dialog.getByRole('textbox', { name: /column name/i })
+  }
+
+  async save() {
+    await this.dialog.getByRole('button', { name: /create new board/i }).click()
+
+    return new BoardPageObject(this.page)
+  }
+}
+
+class EditBoardDialog {
+  constructor(
+    private page: Page,
+    private dialog: Locator,
+  ) {}
+
+  get _dialog() {
+    return this.dialog
+  }
+
+  get nameField() {
+    return this.dialog.getByRole('textbox', { name: /^name/i })
+  }
+
+  addNewColumn() {
+    return this.dialog.getByRole('button', { name: /add new column/i }).click()
+  }
+
+  get columnFields() {
+    return this.dialog.getByRole('textbox', { name: /column name/i })
+  }
+
+  save() {
+    return this.dialog.getByRole('button', { name: /save changes/i }).click()
+  }
+}
+
 class BoardPageObject {
   constructor(private page: Page) {}
+
+  getBoardHeading(boardName?: string | RegExp) {
+    return this.page.getByRole('heading', { name: boardName, level: 1 })
+  }
+
+  getColumn(columnName: string | RegExp) {
+    return this.page.getByRole('listitem').filter({
+      has: this.page.getByRole('heading', { name: columnName, level: 2 }),
+    })
+  }
 
   async openBoardMenu() {
     await this.page.getByRole('button', { name: /board menu/i }).click()
@@ -207,7 +276,10 @@ class BoardPageObject {
     await this.openBoardMenu()
     await this.page.getByRole('menuitem', { name: /edit board/i }).click()
 
-    return this.page.getByRole('dialog', { name: /edit board/i })
+    return new EditBoardDialog(
+      this.page,
+      this.page.getByRole('dialog', { name: /edit board/i }),
+    )
   }
 
   async openDeleteBoardDialog() {

@@ -23,7 +23,5 @@ test('Sign up flow', async ({ page }) => {
   await page.getByRole('textbox', { name: /password/i }).fill(user.password)
   await page.getByRole('button', { name: /sign up/i }).click()
 
-  await expect(
-    page.getByRole('button', { name: /create new board/i }),
-  ).toBeVisible()
+  await expect(page.getByText(/please select or create a board/i)).toBeVisible()
 })

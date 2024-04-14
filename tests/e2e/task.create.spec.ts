@@ -4,7 +4,7 @@ import { makeColumn, makeTask } from 'tests/factories/board'
 
 import { expect, test } from '../playwright-utils'
 
-test('create task', async ({ page, createBoard }) => {
+test('create task', async ({ page, createBoard, kanbanPage }) => {
   const column1 = makeColumn()
   const column2 = makeColumn()
   const task1Description = faker.lorem.paragraph()
@@ -16,10 +16,11 @@ test('create task', async ({ page, createBoard }) => {
   const task2 = makeTask({
     description: task2Description,
   })
-  const boardWithTwoColumns = await createBoard({ columns: [column1, column2] })
+  const boardWithTwoColumns = await createBoard({
+    columns: [column1, column2],
+  })
 
-  await page.goto('/')
-  await page.getByRole('link', { name: boardWithTwoColumns.name }).click()
+  await kanbanPage.gotoBoard(boardWithTwoColumns.name)
 
   // Create first card in first column
   await page.getByRole('link', { name: /add new task/i }).click()

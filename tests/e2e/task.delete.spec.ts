@@ -2,14 +2,13 @@ import { makeColumn, makeTask } from 'tests/factories/board'
 
 import { expect, test } from '../playwright-utils'
 
-test('delete task', async ({ page, createBoard, createTasks }) => {
+test('delete task', async ({ page, createBoard, createTasks, kanbanPage }) => {
   const column = makeColumn()
   const board = await createBoard({ columns: [column] })
   const task = makeTask()
   await createTasks({ boardId: board.id, columnId: column.id, ...task })
 
-  await page.goto('/')
-  await page.getByRole('link', { name: board.name }).click()
+  await kanbanPage.gotoBoard(board.name)
 
   const taskCardLink = page.getByRole('link', { name: task.title })
   await expect(taskCardLink).toBeVisible()

@@ -8,6 +8,7 @@ test('Complete and uncomplete subtasks', async ({
   page,
   createBoard,
   createTasks,
+  kanbanPage,
 }) => {
   const board = await createBoard()
   const subtask1 = makeSubtask({ isCompleted: false })
@@ -22,8 +23,7 @@ test('Complete and uncomplete subtasks', async ({
     ...task,
   })
 
-  await page.goto('/')
-  await page.getByRole('link', { name: board.name }).click()
+  await kanbanPage.gotoBoard(board.name)
 
   const taskCard = page
     .getByRole('listitem')
@@ -54,15 +54,19 @@ test('Complete and uncomplete subtasks', async ({
   await expect(taskCard).toContainText('1 of 3 subtasks')
 })
 
-test('Update task column', async ({ page, createBoard, createTasks }) => {
+test('Update task column', async ({
+  page,
+  createBoard,
+  createTasks,
+  kanbanPage,
+}) => {
   const column1 = makeColumn()
   const column2 = makeColumn()
   const board = await createBoard({ columns: [column1, column2] })
   const task = makeTask()
   await createTasks({ boardId: board.id, columnId: column1.id, ...task })
 
-  await page.goto('/')
-  await page.getByRole('link', { name: board.name }).click()
+  await kanbanPage.gotoBoard(board.name)
 
   const column1Element = page.getByRole('listitem').filter({
     has: page.getByRole('heading', { name: column1.name }),

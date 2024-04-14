@@ -4,15 +4,14 @@ import { makeColumn, makeSubtask, makeTask } from 'tests/factories/board'
 
 import { expect, test } from '../playwright-utils'
 
-test('edit task', async ({ page, createBoard, createTasks }) => {
+test('edit task', async ({ page, createBoard, createTasks, kanbanPage }) => {
   const column1 = makeColumn()
   const column2 = makeColumn()
   const board = await createBoard({ columns: [column1, column2] })
   const task = makeTask()
   await createTasks({ boardId: board.id, columnId: column1.id, ...task })
 
-  await page.goto('/')
-  await page.getByRole('link', { name: board.name }).click()
+  await kanbanPage.gotoBoard(board.name)
 
   // Open task card
   await page.getByRole('link', { name: task.title }).click()
@@ -84,14 +83,18 @@ test('edit task', async ({ page, createBoard, createTasks }) => {
   await expect(card).toBeVisible()
 })
 
-test('add a subtask', async ({ page, createBoard, createTasks }) => {
+test('add a subtask', async ({
+  page,
+  createBoard,
+  createTasks,
+  kanbanPage,
+}) => {
   const column = makeColumn()
   const board = await createBoard({ columns: [column] })
   const task = makeTask()
   await createTasks({ boardId: board.id, columnId: column.id, ...task })
 
-  await page.goto('/')
-  await page.getByRole('link', { name: board.name }).click()
+  await kanbanPage.gotoBoard(board.name)
 
   // Open task card
   await page.getByRole('link', { name: task.title }).click()
@@ -119,7 +122,12 @@ test('add a subtask', async ({ page, createBoard, createTasks }) => {
   ).toBeVisible()
 })
 
-test('edit a subtask', async ({ page, createBoard, createTasks }) => {
+test('edit a subtask', async ({
+  page,
+  createBoard,
+  createTasks,
+  kanbanPage,
+}) => {
   const column = makeColumn()
   const board = await createBoard({ columns: [column] })
   const incompleteSubtask = makeSubtask({ isCompleted: false })
@@ -127,8 +135,7 @@ test('edit a subtask', async ({ page, createBoard, createTasks }) => {
   const task = makeTask({ subtasks: [incompleteSubtask, completeSubtask] })
   await createTasks({ boardId: board.id, columnId: column.id, ...task })
 
-  await page.goto('/')
-  await page.getByRole('link', { name: board.name }).click()
+  await kanbanPage.gotoBoard(board.name)
 
   // Open task card
   await page.getByRole('link', { name: task.title }).click()
@@ -163,15 +170,19 @@ test('edit a subtask', async ({ page, createBoard, createTasks }) => {
   ).toBeChecked()
 })
 
-test('remove a subtask', async ({ page, createBoard, createTasks }) => {
+test('remove a subtask', async ({
+  page,
+  createBoard,
+  createTasks,
+  kanbanPage,
+}) => {
   const column = makeColumn()
   const board = await createBoard({ columns: [column] })
   const subtask = makeSubtask()
   const task = makeTask({ subtasks: [subtask] })
   await createTasks({ boardId: board.id, columnId: column.id, ...task })
 
-  await page.goto('/')
-  await page.getByRole('link', { name: board.name }).click()
+  await kanbanPage.gotoBoard(board.name)
 
   // Open task card
   await page.getByRole('link', { name: task.title }).click()

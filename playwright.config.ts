@@ -48,7 +48,6 @@ export default defineConfig({
     {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
-      grep: /@mobile-ready/,
     },
     // {
     //   name: 'Mobile Safari',

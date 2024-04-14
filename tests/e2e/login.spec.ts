@@ -1,6 +1,6 @@
 import { expect, test } from '../playwright-utils'
 
-test('Login flow', { tag: '@mobile-ready' }, async ({ page, signUp }) => {
+test('Login flow', async ({ page, signUp }) => {
   const { email, password } = await signUp()
 
   await page.goto('/')
