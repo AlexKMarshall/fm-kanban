@@ -1,24 +1,19 @@
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
-
-import js from '@eslint/js'
-import ts from '@typescript-eslint/eslint-plugin'
+import importPlugin from 'eslint-plugin-import'
 import tsParser from '@typescript-eslint/parser'
-// import prettierConfig from 'eslint-config-prettier'
+import js from '@eslint/js'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+
+import prettierConfig from 'eslint-config-prettier'
 import globals from 'globals'
 import reactRecommended from 'eslint-plugin-react/configs/recommended.js'
 import reactJsxRuntime from 'eslint-plugin-react/configs/jsx-runtime.js'
-// import { FlatCompat } from '@eslint/eslintrc'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-
-// // const compat = new FlatCompat({
-// //   baseDirectory: __dirname, // optional; default: process.cwd()
-// //   resolvePluginsRelativeTo: __dirname, // optional
-// // })
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
@@ -61,11 +56,47 @@ export default [
       },
     },
     plugins: {
-      '@typescript-eslint': ts,
+      import: importPlugin,
+      '@typescript-eslint': tsPlugin,
+    },
+    settings: {
+      'import/internal-regex': '^~/',
+      'import/resolver': {
+        node: {
+          extensions: ['.ts', '.tsx'],
+        },
+        typescript: {
+          alwaysTryTypes: true,
+        },
+      },
     },
     rules: {
-      ...ts.configs['eslint-recommended'].rules,
-      ...ts.configs['recommended'].rules,
+      ...tsPlugin.configs['eslint-recommended'].rules,
+      ...tsPlugin.configs['recommended-type-checked'].rules,
+      'import/order': [
+        'error',
+        {
+          groups: [
+            'builtin',
+            'external',
+            'internal',
+            'parent',
+            'sibling',
+            'index',
+          ],
+          'newlines-between': 'always',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
+      'sort-imports': [
+        'error',
+        {
+          ignoreDeclarationSort: true,
+        },
+      ],
     },
   },
 
@@ -121,6 +152,7 @@ export default [
       },
     },
   },
+  prettierConfig,
   // {
   //   // React
   //   files: ['**/*.{js,jsx,ts,tsx}'],
