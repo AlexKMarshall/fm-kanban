@@ -1,5 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@4/schema.json",
-  "ignore": ["postcss.config.mjs", "storybook-vite.config.ts"],
-  "ignoreDependencies": ["isbot", "@storybook/blocks"]
+  "ignore": [
+    "postcss.config.mjs",
+    "storybook-vite.config.ts",
+    "docker-entrypoint.js"
+  ],
+  "ignoreDependencies": ["isbot", "@storybook/blocks", "@flydotio/dockerfile"]
 }
