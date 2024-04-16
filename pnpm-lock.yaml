@@ -62,7 +62,7 @@ devDependencies:
     specifier: 8.4.1
     version: 8.4.1
   '@flydotio/dockerfile':
-    specifier: ^0.5.5
+    specifier: 0.5.5
     version: 0.5.5
   '@playwright/test':
     specifier: 1.43.1
