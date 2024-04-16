@@ -17,7 +17,13 @@ export function hashPassword({
   return crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex')
 }
 
-const cookieSecret = z.string().min(12).parse(process.env.COOKIE_SECRET)
+const cookieSecret = z
+  .string({
+    invalid_type_error: 'COOKIE_SECRET invalid type',
+    required_error: 'COOKIE_SECRET required',
+  })
+  .min(12)
+  .parse(process.env.COOKIE_SECRET)
 
 // The auth cookie is the user Id, but if the user isn't logged in it'll be null
 const authCookieSchema = z.string().min(1).nullable()
