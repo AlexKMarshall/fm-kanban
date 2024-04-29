@@ -64,8 +64,8 @@ importers:
         specifier: 8.4.1
         version: 8.4.1
       '@flydotio/dockerfile':
-        specifier: 0.5.6
-        version: 0.5.6
+        specifier: 0.5.7
+        version: 0.5.7
       '@playwright/test':
         specifier: 1.43.1
         version: 1.43.1
@@ -1172,8 +1172,8 @@ packages:
   '@fal-works/esbuild-plugin-global-externals@2.1.2':
     resolution: {integrity: sha512-cEee/Z+I12mZcFJshKcCqC8tuX5hG3s+d+9nZ3LabqKF1vKdF41B92pJVCBggjAGORAeOzyyDDKrZwIkLffeOQ==}
 
-  '@flydotio/dockerfile@0.5.6':
-    resolution: {integrity: sha512-zqoXp1cFh0A+LQLKpGz4kSA0CctPL/Ze4mALrCQkQaU89zIWYy6dePzlVN+ujOcXTKyR+ZU+fzLjdWV6Uwje1A==}
+  '@flydotio/dockerfile@0.5.7':
+    resolution: {integrity: sha512-BVkXM2K/jLLYBFos1gT/bYv0YPJue8L4j0dkIsskJI4JRn6rPA9bZjT4sJzkzhdubZuwRGG9cgxj4Cfgt4lHlw==}
     engines: {node: '>=16.0.0'}
     hasBin: true
 
@@ -7322,7 +7322,7 @@ snapshots:
 
   '@fal-works/esbuild-plugin-global-externals@2.1.2': {}
 
-  '@flydotio/dockerfile@0.5.6':
+  '@flydotio/dockerfile@0.5.7':
     dependencies:
       chalk: 5.3.0
       diff: 5.2.0
