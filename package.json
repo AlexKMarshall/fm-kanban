@@ -34,7 +34,7 @@
     "husky": "9.0.11",
     "isbot": "5.1.6",
     "react": "18.2.0",
-    "react-aria-components": "1.1.1",
+    "react-aria-components": "1.4.1",
     "react-dom": "18.2.0",
     "react-merge-refs": "2.1.1",
     "tailwind-variants": "0.2.1",
